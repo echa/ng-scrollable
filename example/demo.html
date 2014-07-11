@@ -1,0 +1,91 @@
+<!DOCTYPE HTML>
+<html lang="en">
+    <head>
+        <title>ng-scrollable</title>
+        <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet">
+        <link href="../min/ng-scrollable.min.css" rel="stylesheet">
+        <style>
+            .logo {font-size:60px; line-height: 70px; font-weight: bold;}
+            .sectionhead {padding-top: 30px;}
+            .scrollarea {width: 100%; height: 300px; margin:0 auto}
+            .demo {background-image: url("../assets/dumbo.jpg"); height: 1120px; width: 1680px;}
+        </style>
+    </head>
+    <body ng-app="app" class="text-center">
+        <h1 class="logo">ng-scrollable</h1>
+        <p class='lead'>Superamazing scrollbars for AngularJS.</p>
+        <section>
+            <h2 class="sectionhead">What's it all about...</h2>
+            <p class='lead'>It's small. Minified size is 5.5k JS + 2k CSS.</p>
+            <p class='lead'>It's pure Angular. No jquery required.</p>
+            <p class='lead'>It's soft scrolling using CSS3 translate and transition.</p>
+            <p class='lead'>It's responsive and friendly to your layout.</p>
+            <p class='lead'>It's fully customizable. CSS, scrollbar position and behaviour.</p>
+        </section>
+        <section>
+            <h2 class="sectionhead">Download</h2>
+            <p>
+                <a href="https://github.com/echa/ng-scrollable/archive/0.1.0.tar.gz" class="btn btn-lg btn-success">ng-scrollable-0.1.0.tar.gz</a>
+                <a href="https://github.com/echa/ng-scrollable/archive/0.1.0.zip" class="btn btn-lg btn-success">ng-scrollable-0.1.0.zip</a>
+            </p>
+        </section>
+        <section>
+            <h2 class="sectionhead">Demo</h2>
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>ng-scrollable with bars on both axes</h5>
+                        <p><code>{scrollX:'bottom',scrollY:'right'}</code>(default)</p>
+                        <div ng-scrollable class="scrollarea">
+                            <div class="demo"></div>
+                        </div>
+                        <i class="text-muted">Use mouse or keyboard to scroll.</i>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>ng-scrollable with left vertical bar only</h5>
+                        <p><code>{scrollX:'none',scrollY:'left'}</code></p>
+                        <div ng-scrollable="{scrollX:'none',scrollY:'left'}" class="scrollarea">
+                            <img src="../assets/trimmer2.jpg"/>
+                        </div>
+                        <i class="text-muted">Note how keyboard <kbd>Home</kbd>/<kbd>End</kbd> keys change.</i>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section>
+            <h2 class="sectionhead">How to use it</h2>
+            <div class="container-fluid"><div class="row"><div class="col-md-8" style="float:none; margin:0 auto">
+            <pre class='prettyprint text-left'>&lt;head&gt;
+    &lt;link href="ng-scrollable.min.css" rel="stylesheet"&gt;
+    &lt;script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.2.18/angular.min.js"&gt;&lt;/script&gt;
+    &lt;script src="ng-scrollable.min.js"&gt;&lt;/script&gt;
+    &lt;script&gt;var app = angular.module('app', ['ngScrollable']);&lt;/script&gt;
+&lt;/head&gt;
+&lt;body ng-app="app"&gt;
+    &lt;div ng-scrollable style="width: 400px; height: 300px;"&gt;
+        &lt;img src="image.png"/&gt;
+    &lt;/div&gt;
+&lt;/body&gt;</pre>
+        </div></div></div>
+        </section>
+        <section>
+            <h2 class="sectionhead">Documentation</h2>
+            <p class='lead'>
+                See the README file in the <a href='https://github.com/echa/ng-scrollable'>GitHub Repo</a>.
+            </p>
+        </section>
+        <section>
+            <h2 class="sectionhead">License</h2>
+            <p class='lead'>
+                The MIT License (MIT)
+                <br>
+                Copyright (c) 2014 <a href='http://github.com/echa'>Alexander Eichhorn</a>.
+            </p>
+        </section>
+        <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.18/angular.min.js" ></script>
+        <script src="../min/ng-scrollable.min.js" ></script>
+        <script>
+            var app = angular.module('app', ['ngScrollable']);
+        </script>
+    </body>
+</html>
