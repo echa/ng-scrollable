@@ -34,7 +34,7 @@
             <div class="container-fluid">
                 <div class="row">
                     <div class="col-md-6">
-                        <h5>ng-scrollable with bars on both axes</h5>
+                        <h5>ng-scrollable on background image with bars on both axes</h5>
                         <p><code>{scrollX:'bottom',scrollY:'right'}</code>(default)</p>
                         <div ng-scrollable class="scrollarea">
                             <div class="demo"></div>
@@ -42,10 +42,10 @@
                         <i class="text-muted">Use mouse or keyboard to scroll.</i>
                     </div>
                     <div class="col-md-6">
-                        <h5>ng-scrollable with left vertical bar only</h5>
+                        <h5>ng-scrollable on embedded <code>&lt;img&gt;</code> tag with left vertical bar only</h5>
                         <p><code>{scrollX:'none',scrollY:'left'}</code></p>
                         <div ng-scrollable="{scrollX:'none',scrollY:'left'}" class="scrollarea">
-                            <img src="../assets/trimmer2.jpg"/>
+                            <img src="./assets/dumbo.jpg"/>
                         </div>
                         <i class="text-muted">Note how keyboard <kbd>Home</kbd>/<kbd>End</kbd> keys change.</i>
                     </div>
