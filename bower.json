@@ -8,7 +8,7 @@
   "description": "Superamazing scrollbars for AngularJS",
   "main": [
     "min/ng-scrollable.min.css",
-    "min/ng-scrollable.min.js",
+    "min/ng-scrollable.min.js"
   ],
   "license": "MIT",
   "ignore": [
