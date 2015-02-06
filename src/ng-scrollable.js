@@ -396,9 +396,11 @@ angular.module('ngScrollable', [])
         $document.on('mousemove', onMouseMoveY);
         $document.on('mouseup', onMouseUpY);
         // keyboard
-        element.on('mouseenter', hoverOn);
-        element.on('mouseleave', hoverOff);
-        $document.on('keydown', handleKey);
+        if (config.useKeyboard) {
+          element.on('mouseenter', hoverOn);
+          element.on('mouseleave', hoverOff);
+          $document.on('keydown', handleKey);
+        }
         // mouse wheel
         element.on('wheel', handleWheel);
         element.on('mousewheel', handleWheel);
@@ -420,9 +422,11 @@ angular.module('ngScrollable', [])
           $document.off('mousemove', onMouseMoveY);
           $document.off('mouseup',   onMouseUpY);
           // keyboard
-          element.off('mouseenter', hoverOn);
-          element.off('mouseleave', hoverOff);
-          $document.off('keydown', handleKey);
+          if (config.useKeyboard) {
+            element.off('mouseenter', hoverOn);
+            element.off('mouseleave', hoverOff);
+            $document.off('keydown', handleKey);
+          }
           // mouse wheel
           element.off('wheel', handleWheel);
           element.off('mousewheel', handleWheel);
