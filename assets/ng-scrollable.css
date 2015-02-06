@@ -46,6 +46,10 @@
     opacity: 1;
 }
 
+.scrollable.active .scrollable-bar {
+    opacity: 1;
+}
+
 .scrollable .scrollable-slider {
     -webkit-border-radius: 2px;
        -moz-border-radius: 2px;
