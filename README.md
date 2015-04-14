@@ -82,6 +82,17 @@ When set to true, keyboard events are used for scrolling when the mouse cursor h
 When set to true any window.resize event will trigger a full refresh of the scrollable.
 **Default: true**
 
+Optional attributes
+-------------------
+
+ng-scrollable supports optional attributes.
+
+### scrollX
+Binded to the scope to control the position of the horizontal scrollbar.
+
+### scrollY
+Binded to the scope to control the position of the vertical scrollbar.
+
 
 How does it work?
 -----------------

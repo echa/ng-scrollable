@@ -47,7 +47,7 @@ angular.module('ngScrollable', [])
       minSliderLength: 10,
       useBothWheelAxes: false,
       useKeyboard: true,
-      updateOnResize: true,
+      updateOnResize: true
     };
 
     return {
@@ -64,7 +64,7 @@ angular.module('ngScrollable', [])
           barX: angular.element(element.children()[1]),
           barY: angular.element(element.children()[2]),
           sliderX: angular.element(angular.element(element.children()[1]).children()[0]),
-          sliderY: angular.element(angular.element(element.children()[2]).children()[0]),
+          sliderY: angular.element(angular.element(element.children()[2]).children()[0])
         },
         isXActive = false,
         isYActive = false,
@@ -163,6 +163,12 @@ angular.module('ngScrollable', [])
           contentLeft = clamp(left, 0, contentWidth - containerWidth);
           var t = 'translate(' + toPix(-contentLeft) + ',' + toPix(-contentTop) + ')';
           dom.content.css({ transform: t, '-webkit-transform': t });
+          if (attrs.scrollX && $scope[attrs.scrollX]) {
+            $scope[attrs.scrollX] = contentLeft;
+          }
+          if (attrs.scrollY && $scope[attrs.scrollY]) {
+            $scope[attrs.scrollY] = contentTop;
+          }
         },
         scrollX = function (pos) {
           scrollTo(pos, contentTop);
@@ -364,6 +370,21 @@ angular.module('ngScrollable', [])
           // prevent default scrolling
           stop(e, true);
         };
+
+        angular.forEach(['scrollX', 'scrollY'], function (attr) {
+          if (attrs[attr]) {
+            $scope.$watch(attrs[attr], function(val) {
+              switch (attr) {
+                case 'scrollX' :
+                  scrollX(val);
+                  break;
+                case 'scrollY' :
+                  scrollY(val);
+                  break;
+              }
+            });
+          }
+        });
 
 
         // init

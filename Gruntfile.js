@@ -77,6 +77,27 @@ module.exports = function(grunt) {
 				dest: 'min/',
 				ext: '.min.css'
 			}
+		},
+		watch: {
+			css: {
+				files: 'assets/*.css',
+				tasks: ['csslint', 'cssmin']
+			},
+			js: {
+				files: 'src/*.js',
+				tasks: ['jshint', 'uglify']
+			},
+			livereload: {
+				// Browser live reloading
+				// https://github.com/gruntjs/grunt-contrib-watch#live-reloading
+				files: [
+					'example/*',
+					'min/*'
+				],
+				options: {
+					livereload: true
+				}
+			}
 		}
 	});
 
@@ -85,14 +106,17 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-contrib-cssmin');
 	grunt.loadNpmTasks('grunt-contrib-uglify');
 	grunt.loadNpmTasks('grunt-contrib-clean');
+	grunt.loadNpmTasks('grunt-contrib-watch');
 
 	grunt.registerTask('default', 'Usage', function () {
 		grunt.log.writeln();
 		grunt.log.writeln("Usage");
 		grunt.log.writeln("grunt lint  - check source files");
 		grunt.log.writeln("grunt build - build minified version");
+		grunt.log.writeln("grunt serve - build minified version and watch files");
 	});
 
 	grunt.registerTask('lint', ['jshint', 'csslint']);
 	grunt.registerTask('build', ['clean', 'lint', 'uglify', 'cssmin']);
+	grunt.registerTask('serve', ['build', 'watch']);
 };
