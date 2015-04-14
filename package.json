@@ -2,7 +2,7 @@
   "author": "Alexander Eichhorn <alex@kidtsunami.com>",
   "name": "ngScrollable",
   "description": "Superamazing scrollbars for AngularJS",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "license": "MIT License",
   "homepage": "",
   "repository": {
@@ -24,6 +24,6 @@
     "grunt-contrib-jshint": "*",
     "grunt-contrib-uglify": "*",
     "grunt-contrib-clean": "*",
-	"grunt-contrib-watch": "*"
+	  "grunt-contrib-watch": "*"
   }
 }

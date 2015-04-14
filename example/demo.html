@@ -65,9 +65,10 @@
                                 <button class="btn btn-primary" ng-click="moveY(50)">Down</button>
                             </div>
                         </div>
-                        <div ng-scrollable="{scrollX:'none',scrollY:'left'}" class="scrollarea" scroll-x="posX" scroll-Y="posY">
+                        <div ng-scrollable="{scrollX:'bottom',scrollY:'right'}" class="scrollarea" spy-x="posX" spy-y="posY">
                             <img src="../assets/dumbo.jpg"/>
                         </div>
+                        X {{posX}} Y {{posY}}
                     </div>
                 </div>
             </div>
@@ -99,7 +100,7 @@
             <p class='lead'>
                 The MIT License (MIT)
                 <br>
-                Copyright (c) 2014 <a href='http://github.com/echa'>Alexander Eichhorn</a>.
+                Copyright (c) 2014 - 2015 <a href='http://github.com/echa'>Alexander Eichhorn</a> and <a href="https://github.com/echa/ng-scrollable/graphs/contributors">contributors</a>.
             </p>
         </section>
         <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.18/angular.min.js"></script>

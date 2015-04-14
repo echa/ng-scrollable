@@ -41,10 +41,40 @@ If the size of your scrollable container or content changes, call
 $scope.$emit('content.changed');
 ```
 
+from any of your content controllers inside ng-scrollable or
+
+```javascript
+$scope.$broadcast('content.changed');
+```
+
+from outside the ng-scrollable scope.
+
+Events
+-------
+
+ng-scrollable may be controlled by events sent to the directive's scope, either using `$scope.$broadcast` from the outside or `$scope.$emit` from the inside. The events below take no parameters.
+
+### scrollable.scroll.left
+Scroll to the left edge of the content. Will change the horizontal position only.
+
+### scrollable.scroll.right
+Scroll to the right edge of the content. Will change the horizontal position only.
+
+### scrollable.scroll.top
+Scroll to the top edge of the content. Will change the vertical position only.
+
+### scrollable.scroll.bottom
+Scroll to the top edge of the content. Will change the vertical position only.
+
+
+
 Optional parameters
 -------------------
 
-ng-scrollable supports optional parameters.
+ng-scrollable supports optional parameters passed as JS object to the `ng-scrollable` attribute, e.g.
+```
+<div ng-scrollable="{scrollX:'none',scrollY:'left'}"></div>
+```
 
 ### scrollX
 Position where to display the horizontal scrollbar, either `top`, `bottom` or `none`.
@@ -85,13 +115,13 @@ When set to true any window.resize event will trigger a full refresh of the scro
 Optional attributes
 -------------------
 
-ng-scrollable supports optional attributes.
+ng-scrollable supports optional attributes to set or spy on the current scroll position programmatically. Spies may be bound to any Angular expression such as a scope function or scope variable. If the expression evaluates to a settable entity (i.e. a variable), ng-scrollable will set it to the current scroll position in pixels.
 
-### scrollX
-Binded to the scope to control the position of the horizontal scrollbar.
+### spyX
+Spy on and control the horizontal scrollbar position.
 
-### scrollY
-Binded to the scope to control the position of the vertical scrollbar.
+### spyY
+Spy on and control the vertical scrollbar position.
 
 
 How does it work?
@@ -218,7 +248,7 @@ If you have any idea to improve this project or any problem using it, please cre
 License
 -------
 
-The MIT License (MIT) Copyright (c) 2014 Alexander Eichhorn.
+The MIT License (MIT) Copyright (c) 2014-2015 Alexander Eichhorn and [contributors](https://github.com/echa/ng-scrollable/graphs/contributors).
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 

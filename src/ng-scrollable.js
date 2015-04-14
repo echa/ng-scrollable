@@ -34,8 +34,9 @@ angular.module('ngScrollable', [])
   '$document',
   '$window',
   '$timeout',
+  '$parse',
 
-  function ($document, $window, $timeout) {
+  function ($document, $window, $timeout, $parse) {
     'use strict';
 
     var defaultOpts = {
@@ -86,6 +87,7 @@ angular.module('ngScrollable', [])
         isYScrolling = false,
         hovered = false,
         activeTimeout,
+        setter = {},
 
         toPix = function (v) { return v.toFixed(3) + 'px'; },
         clamp = function (val, min, max) {
@@ -163,11 +165,13 @@ angular.module('ngScrollable', [])
           contentLeft = clamp(left, 0, contentWidth - containerWidth);
           var t = 'translate(' + toPix(-contentLeft) + ',' + toPix(-contentTop) + ')';
           dom.content.css({ transform: t, '-webkit-transform': t });
-          if (attrs.scrollX && $scope[attrs.scrollX]) {
-            $scope[attrs.scrollX] = contentLeft;
+
+          // update external scroll spies
+          if (setter.spyX) {
+            setter.spyX($scope, contentLeft);
           }
-          if (attrs.scrollY && $scope[attrs.scrollY]) {
-            $scope[attrs.scrollY] = contentTop;
+          if (setter.spyY) {
+            setter.spyY($scope, contentTop);
           }
         },
         scrollX = function (pos) {
@@ -371,21 +375,24 @@ angular.module('ngScrollable', [])
           stop(e, true);
         };
 
-        angular.forEach(['scrollX', 'scrollY'], function (attr) {
+        // watch and set spy attribute value expressions
+        angular.forEach(['spyX', 'spyY'], function (attr) {
           if (attrs[attr]) {
-            $scope.$watch(attrs[attr], function(val) {
+            // keep a setter to the spy expression (if settable)
+            setter[attr] = $parse(attrs[attr]).assign;
+            // watch the spy expression
+            $scope.$watch(attrs[attr], function (val) {
               switch (attr) {
-                case 'scrollX' :
-                  scrollX(val);
-                  break;
-                case 'scrollY' :
-                  scrollY(val);
-                  break;
+              case 'spyX' :
+                scrollX(val);
+                break;
+              case 'spyY' :
+                scrollY(val);
+                break;
               }
             });
           }
         });
-
 
         // init
         refresh();
@@ -400,6 +407,27 @@ angular.module('ngScrollable', [])
             // refresh scrollbars
             refresh();
           });
+        });
+
+        // may be broadcast from outside to scroll to content edges
+        $scope.$on('scrollable.scroll.left', function () {
+          // defer to next digest
+          $timeout(function () { scrollX(0); });
+        });
+
+        $scope.$on('scrollable.scroll.right', function () {
+          // defer to next digest
+          $timeout(function () { scrollX(contentWidth); });
+        });
+
+        $scope.$on('scrollable.scroll.top', function () {
+          // defer to next digest
+          $timeout(function () { scrollY(0); });
+        });
+
+        $scope.$on('scrollable.scroll.bottom', function () {
+          // defer to next digest
+          $timeout(function () { scrollY(contentHeight); });
         });
 
         // bind DOM element handlers
