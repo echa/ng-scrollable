@@ -23,6 +23,7 @@
     "grunt-contrib-cssmin": "*",
     "grunt-contrib-jshint": "*",
     "grunt-contrib-uglify": "*",
-    "grunt-contrib-clean": "*"
+    "grunt-contrib-clean": "*",
+	"grunt-contrib-watch": "*"
   }
 }
