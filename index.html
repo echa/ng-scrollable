@@ -3,12 +3,12 @@
     <head>
         <title>ng-scrollable</title>
         <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet">
-        <link href="../min/ng-scrollable.min.css" rel="stylesheet">
+        <link href="./min/ng-scrollable.min.css" rel="stylesheet">
         <style>
             .logo {font-size:60px; line-height: 70px; font-weight: bold;}
             .sectionhead {padding-top: 30px;}
             .scrollarea {width: 100%; height: 300px; margin:0 auto}
-            .demo {background-image: url("../assets/dumbo.jpg"); height: 1120px; width: 1680px;}
+            .demo {background-image: url("./assets/dumbo.jpg"); height: 1120px; width: 1680px;}
         </style>
     </head>
     <body ng-app="app" class="text-center">
@@ -45,7 +45,7 @@
                         <h5>ng-scrollable with left vertical bar only</h5>
                         <p><code>{scrollX:'none',scrollY:'left'}</code></p>
                         <div ng-scrollable="{scrollX:'none',scrollY:'left'}" class="scrollarea">
-                            <img src="../assets/dumbo.jpg"/>
+                            <img src="./assets/dumbo.jpg"/>
                         </div>
                         <i class="text-muted">Note how keyboard <kbd>Home</kbd>/<kbd>End</kbd> keys change.</i>
                     </div>
@@ -66,7 +66,7 @@
                             </div>
                         </div>
                         <div ng-scrollable="{scrollX:'bottom',scrollY:'right'}" class="scrollarea" spy-x="posX" spy-y="posY">
-                            <img src="../assets/dumbo.jpg"/>
+                            <img src="./assets/dumbo.jpg"/>
                         </div>
                         X {{posX}} Y {{posY}}
                     </div>
