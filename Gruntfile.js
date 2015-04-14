@@ -91,7 +91,7 @@ module.exports = function(grunt) {
 				// Browser live reloading
 				// https://github.com/gruntjs/grunt-contrib-watch#live-reloading
 				files: [
-					'example/*.html',
+					'example/*',
 					'min/*'
 				],
 				options: {
