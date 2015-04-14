@@ -3,12 +3,12 @@
     <head>
         <title>ng-scrollable</title>
         <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet">
-        <link href="./min/ng-scrollable.min.css" rel="stylesheet">
+        <link href="../min/ng-scrollable.min.css" rel="stylesheet">
         <style>
             .logo {font-size:60px; line-height: 70px; font-weight: bold;}
             .sectionhead {padding-top: 30px;}
             .scrollarea {width: 100%; height: 300px; margin:0 auto}
-            .demo {background-image: url("./assets/dumbo.jpg"); height: 1120px; width: 1680px;}
+            .demo {background-image: url("../assets/dumbo.jpg"); height: 1120px; width: 1680px;}
         </style>
     </head>
     <body ng-app="app" class="text-center">
@@ -25,16 +25,16 @@
         <section>
             <h2 class="sectionhead">Download</h2>
             <p>
-                <a href="https://github.com/echa/ng-scrollable/archive/0.1.0.tar.gz" class="btn btn-lg btn-success">ng-scrollable-0.1.0.tar.gz</a>
-                <a href="https://github.com/echa/ng-scrollable/archive/0.1.0.zip" class="btn btn-lg btn-success">ng-scrollable-0.1.0.zip</a>
+                <a href="https://github.com/echa/ng-scrollable/archive/0.1.2.tar.gz" class="btn btn-lg btn-success">ng-scrollable-0.1.2.tar.gz</a>
+                <a href="https://github.com/echa/ng-scrollable/archive/0.1.2.zip" class="btn btn-lg btn-success">ng-scrollable-0.1.2.zip</a>
             </p>
         </section>
         <section>
             <h2 class="sectionhead">Demo</h2>
-            <div class="container-fluid">
+            <div class="container-fluid" ng-controller="AppCtrl">
                 <div class="row">
                     <div class="col-md-6">
-                        <h5>ng-scrollable on background image with bars on both axes</h5>
+                        <h5>ng-scrollable with bars on both axes</h5>
                         <p><code>{scrollX:'bottom',scrollY:'right'}</code>(default)</p>
                         <div ng-scrollable class="scrollarea">
                             <div class="demo"></div>
@@ -42,12 +42,33 @@
                         <i class="text-muted">Use mouse or keyboard to scroll.</i>
                     </div>
                     <div class="col-md-6">
-                        <h5>ng-scrollable on embedded <code>&lt;img&gt;</code> tag with left vertical bar only</h5>
+                        <h5>ng-scrollable with left vertical bar only</h5>
                         <p><code>{scrollX:'none',scrollY:'left'}</code></p>
                         <div ng-scrollable="{scrollX:'none',scrollY:'left'}" class="scrollarea">
-                            <img src="./assets/dumbo.jpg"/>
+                            <img src="../assets/dumbo.jpg"/>
                         </div>
                         <i class="text-muted">Note how keyboard <kbd>Home</kbd>/<kbd>End</kbd> keys change.</i>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 col-md-offset-3">
+                        <h3>Manual positioning</h3>
+                        <h5>ng-scrollable with controls</h5>
+
+                        <div style="margin-bottom: 10px;">
+                            <div class="btn-group">
+                                <button class="btn btn-primary" ng-click="moveX(-50)">Left</button>
+                                <button class="btn btn-primary" ng-click="moveX(50)">Right</button>
+                            </div>
+                            <div class="btn-group-vertical">
+                                <button class="btn btn-primary" ng-click="moveY(-50)">Up</button>
+                                <button class="btn btn-primary" ng-click="moveY(50)">Down</button>
+                            </div>
+                        </div>
+                        <div ng-scrollable="{scrollX:'bottom',scrollY:'right'}" class="scrollarea" spy-x="posX" spy-y="posY">
+                            <img src="../assets/dumbo.jpg"/>
+                        </div>
+                        X {{posX}} Y {{posY}}
                     </div>
                 </div>
             </div>
@@ -79,13 +100,11 @@
             <p class='lead'>
                 The MIT License (MIT)
                 <br>
-                Copyright (c) 2014 <a href='http://github.com/echa'>Alexander Eichhorn</a>.
+                Copyright (c) 2014 - 2015 <a href='http://github.com/echa'>Alexander Eichhorn</a> and <a href="https://github.com/echa/ng-scrollable/graphs/contributors">contributors</a>.
             </p>
         </section>
-        <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.18/angular.min.js" ></script>
-        <script src="./min/ng-scrollable.min.js" ></script>
-        <script>
-            var app = angular.module('app', ['ngScrollable']);
-        </script>
+        <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.18/angular.min.js"></script>
+        <script src="./min/ng-scrollable.min.js"></script>
+        <script src="app.js"></script>
     </body>
 </html>
