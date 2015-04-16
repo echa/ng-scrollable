@@ -6,7 +6,9 @@ Superamazing scrollbars for AngularJS
 Why ng-scrollable?
 ------------------
 
-Since Firefox 30 did not support CSS styling of scrollbars `overlay:auto` was no real usable cross-browser alternative. Other plugins out there required either jquery ([perfect-scrollbar](https://noraesae.github.io/perfect-scrollbar/)), were not flexible enough or unfriendly to layouts in larger single-page apps.
+Since Firefox 30 did not support CSS styling of scrollbars, `overlay:auto` was no usable cross-browser alternative, other plugins out there required either jquery ([perfect-scrollbar](https://noraesae.github.io/perfect-scrollbar/)), were not flexible enough or unfriendly to layouts in larger single-page apps, I decided to create a pure JS/Angular solution.
+
+Hope you can also make use of it in your projects.
 
 Demo: https://echa.github.com/ng-scrollable/
 
@@ -18,6 +20,7 @@ Features
 * It's soft scrolling using CSS3 translate and transition.
 * It's responsive and friendly to your layout.
 * It's fully customizable. CSS, scrollbar position and behaviour.
+* It's MIT licensed.
 
 How to Use
 ----------
