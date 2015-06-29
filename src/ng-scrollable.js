@@ -304,7 +304,6 @@ angular.module('ngScrollable', [])
           case 33: // page up
             deltaY = containerHeight;
             break;
-          case 32: // space bar
           case 34: // page down
             deltaY = -containerHeight;
             break;
