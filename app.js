@@ -12,4 +12,5 @@ app.controller('AppCtrl', function ($scope) {
 	$scope.moveY = function (pixels) {
 		$scope.posY = $scope.posY + pixels;
 	};
+	$scope.$broadcast('content.changed', 1000);
 });
