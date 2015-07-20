@@ -6,18 +6,19 @@ Superamazing scrollbars for AngularJS
 Why ng-scrollable?
 ------------------
 
-Since Firefox 30 did not support CSS styling of scrollbars `overlay:auto` was no real usable cross-browser alternative. Other plugins out there required either jquery ([perfect-scrollbar](https://noraesae.github.io/perfect-scrollbar/)), were not flexible enough or unfriendly to layouts in larger single-page apps.
+ng-scrollable exists because Firefox does not support scrollbar styling using CSS and other cross-browser alternatives either require jquery ([perfect-scrollbar](https://noraesae.github.io/perfect-scrollbar/)), are not flexible enough or unfriendly to layouts in complex single-page apps.
 
 Demo: https://echa.github.com/ng-scrollable/
 
 Features
 --------
 
-* It's small. Minified size is 5.1k JS + 1.7k CSS.
-* It's pure Angular. No jquery required.
-* It's soft scrolling using CSS3 translate and transition.
-* It's responsive and friendly to your layout.
+* It supports mouse, wheel, keyboard and touch input with kinetic scrolling.
+* It's soft scrolling using CSS3 translate3d, transition and requestAnimationFrame.
+* It's responsive, and friendly to your layout.
 * It's fully customizable. CSS, scrollbar position and behaviour.
+* It's small. Minified size is 7.7k JS + 1.5k CSS.
+* It's pure Angular and Javascript. No jquery required.
 
 How to Use
 ----------
@@ -25,7 +26,7 @@ How to Use
 ```html
 <head>
     <link href="ng-scrollable.min.css" rel="stylesheet">
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.18/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.3/angular.min.js"></script>
     <script src="ng-scrollable.min.js"></script>
     <script>var app = angular.module('app', ['ngScrollable']);</script>
 </head>
@@ -49,10 +50,16 @@ $scope.$broadcast('content.changed');
 
 from outside the ng-scrollable scope.
 
+In case the DOM of your scrollable container changes, call
+```javascript
+$scope.$broadcast('content.reload');
+```
+from outside the ng-scrollable scope to let ng-scrollable reload DOM node references and reattach event listeners.
+
 Events
 -------
 
-ng-scrollable may be controlled by events sent to the directive's scope, either using `$scope.$broadcast` from the outside or `$scope.$emit` from the inside. The events below take no parameters.
+ng-scrollable may be controlled by events sent to the directive's scope, either using `$scope.$broadcast` from the outside or `$scope.$emit` from the inside. The `scrollable.scroll.*` events move the content to absolute positions. They take no parameters.
 
 ### scrollable.scroll.left
 Scroll to the left edge of the content. Will change the horizontal position only.
@@ -66,6 +73,20 @@ Scroll to the top edge of the content. Will change the vertical position only.
 ### scrollable.scroll.bottom
 Scroll to the top edge of the content. Will change the vertical position only.
 
+### content.changed (wait, noNotify)
+Re-evaluate content and container size and update scrollbars in the next digest cycle or after an optional timeout defined by `wait` (in ms). If `noNotify` is True no event is sent when dimensions have changed.
+
+### content.reload (noNotify))
+Reloads DOM references and re-registers event handlers before updating dimensions. If `noNotify` is True no event is sent when dimensions have changed.
+
+
+Emitted Events
+-------------------
+
+ng-scrollable broadcasts changes in dimensions down the scope stack using `$scope.$broadcast` so inner content controllers can react appropriatly.
+
+### scrollable.dimensions(containerWidth, containerHeight, contentWidth, contentHeight, id)
+Sent on each detected change to the container or content dimensions. Id may be defined using configuration parameters (see below).
 
 
 Optional parameters
@@ -75,6 +96,8 @@ ng-scrollable supports optional parameters passed as JS object to the `ng-scroll
 ```
 <div ng-scrollable="{scrollX:'none',scrollY:'left'}"></div>
 ```
+### id
+Unique Id value to identify events sent by the scrollable container. Value and type are opaque to ng-scrollable, you may use numbers, strings and even Javascript objects.
 
 ### scrollX
 Position where to display the horizontal scrollbar, either `top`, `bottom` or `none`.
@@ -112,6 +135,18 @@ When set to true, keyboard events are used for scrolling when the mouse cursor h
 When set to true any window.resize event will trigger a full refresh of the scrollable.
 **Default: true**
 
+### scrollXAlways
+Always show the horizontal scrollbar even if the content is smaller than the container.
+**Default: false**
+
+### scrollYAlways
+Always show the vertical scrollbar even if the content is smaller than the container.
+**Default: false**
+
+### usePadding
+Changes the way ng-scrollable determines content dimensions. When True, ng-scrollable uses clientWidth/Height instead of offsetWidth/Height.
+
+
 Optional attributes
 -------------------
 
@@ -130,10 +165,11 @@ How does it work?
 * ng-scrollable is pure Javascript and only requires Angular.
 * Content is wrapped with `ng-transclude` into an `overflow:hidden` container.
 * Scrollbars are added as sibling element and positioned absolute over the content.
-* Content and scrollbars are soft moving using CSS3 transform and transition.
+* Content and scrollbars are soft moving using CSS3 transform3d and transition.
+* Kinetic scrolling using requestAnimationFrame is enabled on touch devices.
 * You can disable X and Y scrolling and choose where scrollbars are displayed.
 * Window resize events are captured to recalculate scrollbar size and position.
-* You can optionally signal content changes by emitting a `content.changed` event.
+* You can optionally signal content changes by emitting a `content.changed` event or reload everything with a `content.reload` event.
 
 Cool, isn't it?
 
@@ -213,15 +249,15 @@ $scope.$emit('content.changed');
 
 ### Compatibility
 
-ng-scrollable was tested to work with Angular 1.2.18. However it should be backwards compatible down to Angular 1.1 since it does not use any special features introduced in later versions.
+ng-scrollable was tested to work with Angular 1.2.18 up to 1.4.3. However it should be backwards compatible down to Angular 1.1 since it does not use any special features introduced in later versions.
 
 This project only considers supporting recent browser versions to keep the source small and usable (hence, no IE 6/7/8 or other broken browser implementations). Since ng-scrollable doesn't use touch events yet, guestures on mobiles don't work.
 
 I have verified this plugin works with the following Desktop browsers
 
-* Firefox 30
-* Chrome 35 and
-* Safari 6.1.4 (OSX)
+* Firefox 30 .. 40
+* Chrome 35 .. 43 and
+* Safari 6.1.4 .. 8.0.7 (OSX)
 
 It may or may not work with other browsers. Let me know your experiences and send pull requests!
 

@@ -1,7 +1,33 @@
 .scrollable {
     overflow: hidden;
     position: relative;
+    width: 100%;
+    height: 100%;
 }
+
+.scrollable-content {
+    box-sizing: border-box;
+    min-height: 100%;
+}
+
+/* Enable the Classes below to have scrollbars not overlap the content */
+/*
+.scrollable-content.scrollable-right {
+    margin-right: 15px;
+}
+
+.scrollable-content.scrollable-top {
+    margin-top: 15px;
+}
+
+.scrollable-content.scrollable-left {
+    margin-left: 15px;
+}
+
+.scrollable-content.scrollable-bottom {
+    margin-bottom: 15px;
+}
+*/
 
 /* if any element is fixed and displayed at full window size, this rule becomes handy */
 .fullwindow .scrollable-content {

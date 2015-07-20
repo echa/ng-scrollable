@@ -2,15 +2,15 @@
   "author": "Alexander Eichhorn <alex@kidtsunami.com>",
   "name": "ngScrollable",
   "description": "Superamazing scrollbars for AngularJS",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "license": "MIT License",
-  "homepage": "",
+  "homepage": "https://echa.github.io/ng-scrollable/",
   "repository": {
     "type": "git",
-    "url": "http://github.com/echa/ng-scrollable.git"
+    "url": "https://github.com/echa/ng-scrollable.git"
   },
   "bugs": {
-    "url" : "http://github.com/echa/ng-scrollable/issues"
+    "url" : "https://github.com/echa/ng-scrollable/issues"
   },
   "scripts": {
     "test": "grunt"
@@ -18,7 +18,7 @@
   "dependencies": {
   },
   "devDependencies": {
-    "grunt": "^0.4.2",
+    "grunt": "*",
     "grunt-contrib-csslint": "*",
     "grunt-contrib-cssmin": "*",
     "grunt-contrib-jshint": "*",

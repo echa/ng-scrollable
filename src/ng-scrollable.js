@@ -1,10 +1,10 @@
 /* =========================================================
- * ng-scrollable.js v0.1.0
+ * ng-scrollable.js v0.2.0
  * http://github.com/echa/ng-scrollable
  * =========================================================
- * Copyright 2014 Alexander Eichhorn
+ * Copyright 2014-2015 Alexander Eichhorn
  *
- * The MIT License (MIT) Copyright (c) 2014 Alexander Eichhorn.
+ * The MIT License (MIT) Copyright (c) 2014-2015 Alexander Eichhorn.
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,42 +30,65 @@
 
 angular.module('ngScrollable', [])
 
-.directive('ngScrollable', [
-  '$document',
-  '$window',
-  '$timeout',
-  '$parse',
-
-  function ($document, $window, $timeout, $parse) {
+.directive('ngScrollable', ['$injector', function ($injector) {
     'use strict';
 
+    // dependencies
+    var $document        = $injector.get('$document');
+    var $timeout         = $injector.get('$timeout');
+    var $window          = $injector.get('$window');
+    var $parse           = $injector.get('$parse');
+    var $$rAF            = $injector.get('$$rAF');
+    var extend           = angular.extend;
+    var element          = angular.element;
+    var isDefined        = angular.isDefined;
+    var isTouchDevice    = typeof $window.ontouchstart !== 'undefined';
+    var xform            = 'transform';
+
+    // find the correct CSS transform feature class name
+    ['webkit', 'moz', 'o', 'ms'].every(function (prefix) {
+      var e = prefix + 'Transform';
+      var body = $document.find('body').eq(0);
+      if (typeof body[0].style[e] !== 'undefined') {
+        xform = e;
+        return false;
+      }
+      return true;
+    });
+
     var defaultOpts = {
+      id: 0,
       scrollX: 'bottom',
       scrollY: 'right',
       scrollXSlackSpace: 0,
       scrollYSlackSpace: 0,
+      scrollXAlways: false,
+      scrollYAlways: false,
+      usePadding: false,
       wheelSpeed: 1,
       minSliderLength: 10,
       useBothWheelAxes: false,
       useKeyboard: true,
-      updateOnResize: true
+      updateOnResize: true,
+      kineticTau: 325
     };
 
     return {
       restrict: 'A',
-      replace: true,
       transclude: true,
       template: "<div class=\"scrollable\"><div class=\"scrollable-content\" ng-transclude></div><div class='scrollable-bar scrollable-bar-x'><div class='scrollable-slider'></div></div><div class='scrollable-bar scrollable-bar-y'><div class='scrollable-slider'></div></div></div>",
-      link: function ($scope, element, attrs) {
+      link: function ($scope, elem, attrs) {
         var
-        config = angular.extend({}, defaultOpts, $scope.$eval(attrs.ngScrollable)),
+        config = extend({}, defaultOpts, $scope.$eval(attrs.ngScrollable)),
+        el = element(elem.children()[0]),
         dom = {
-          window: angular.element($window),
-          content: angular.element(element.children()[0]),
-          barX: angular.element(element.children()[1]),
-          barY: angular.element(element.children()[2]),
-          sliderX: angular.element(angular.element(element.children()[1]).children()[0]),
-          sliderY: angular.element(angular.element(element.children()[2]).children()[0])
+          window: element($window),
+          el: el,
+          content: element(el.children()[0]),
+          barX: element(el.children()[1]),
+          barY: element(el.children()[2]),
+          sliderX: element(element(el.children()[1]).children()[0]),
+          sliderY: element(element(el.children()[2]).children()[0])
         },
         isXActive = false,
         isYActive = false,
@@ -87,105 +110,128 @@ angular.module('ngScrollable', [])
         isYScrolling = false,
         hovered = false,
         activeTimeout,
-        setter = {},
+        spySetter = {},
+        // kinetic scrolling
+        velocityX = 0,
+        amplitudeX = 0,
+        frameX = 0,
+        targetX = 0,
+        velocityY = 0,
+        amplitudeY = 0,
+        frameY = 0,
+        targetY = 0,
+        trackTime,
+        trackerTimeout,
 
         toPix = function (v) { return v.toFixed(3) + 'px'; },
         clamp = function (val, min, max) {
           return Math.max(min, Math.min(val, max));
         },
         updateSliderX = function () {
-          var t;
+          // adjust container width by the amount of border pixels so that the
+          // slider does not extend outside the bar region
+          var cw = containerWidth - 3;
           if (isXActive) {
-            xSliderWidth = Math.max(config.minSliderLength, parseInt(containerWidth * containerWidth / contentWidth, 10));
-            xSliderLeft = parseInt(contentLeft * (containerWidth - xSliderWidth) / (contentWidth - containerWidth), 10);
+            xSliderWidth = Math.max(config.minSliderLength, parseInt(cw * cw / contentWidth, 10));
+            xSliderLeft = parseInt(contentLeft * (cw - xSliderWidth) / (contentWidth - cw), 10);
 
-            if (xSliderLeft >= containerWidth - xSliderWidth) {
-              xSliderLeft = containerWidth - xSliderWidth;
+            if (xSliderLeft >= cw - xSliderWidth) {
+              xSliderLeft = cw - xSliderWidth;
             } else if (xSliderLeft < 0) {
               xSliderLeft = 0;
             }
-            t = 'translate(' + toPix(xSliderLeft) + ',0)';
-            dom.sliderX.css({transform: t, '-webkit-transform': t, width: toPix(xSliderWidth)});
+            dom.sliderX[0].style[xform] = 'translate3d(' + toPix(xSliderLeft) + ',0,0)';
+            dom.sliderX[0].style.width = toPix(xSliderWidth);
           } else {
             xSliderWidth = xSliderLeft = 0;
-            t = 'translate(0,0)';
-            dom.sliderX.css({transform: t, '-webkit-transform': t, width: 0});
+            dom.sliderX[0].style[xform] = 'translate3d(0,0,0)';
+            dom.sliderX[0].style.width = '0';
           }
         },
         updateSliderY = function () {
-          var t;
+          // adjust container height by the amount of border pixels so that the
+          // slider does not extend outside the bar region
+          var ch = containerHeight - 3;
           if (isYActive) {
-            ySliderHeight = Math.max(config.minSliderLength, parseInt(containerHeight * containerHeight / contentHeight, 10));
-            ySliderTop = parseInt(contentTop * (containerHeight - ySliderHeight) / (contentHeight - containerHeight), 10);
+            ySliderHeight = Math.max(config.minSliderLength, parseInt(ch * ch / contentHeight, 10));
+            ySliderTop = parseInt(contentTop * (ch - ySliderHeight) / (contentHeight - ch), 10);
 
-            if (ySliderTop >= containerHeight - ySliderHeight) {
-              ySliderTop = containerHeight - ySliderHeight;
+            if (ySliderTop >= ch - ySliderHeight) {
+              ySliderTop = ch - ySliderHeight;
             } else if (ySliderTop < 0) {
               ySliderTop = 0;
             }
-            t = 'translate(0,' + toPix(ySliderTop) + ')';
-            dom.sliderY.css({transform: t, '-webkit-transform': t, height: toPix(ySliderHeight)});
+            dom.sliderY[0].style[xform] = 'translate3d(0,' + toPix(ySliderTop) + ',0)';
+            dom.sliderY[0].style.height = toPix(ySliderHeight);
           } else {
             ySliderTop = ySliderHeight = 0;
-            t = 'translate(0,0)';
-            dom.sliderY.css({transform: t, '-webkit-transform': t, height: 0});
+            dom.sliderY[0].style[xform] = 'translate3d(0,0,0)';
+            dom.sliderY[0].style.height = '0';
           }
         },
         updateBarX = function () {
-          var scrollbarXStyles = {left: 0, width: toPix(containerWidth), display: isXActive ? "inherit": "none"};
+          var showAlways = config.scrollXAlways,
+              scrollbarXStyles = {left: 0, width: toPix(containerWidth), display: isXActive || showAlways ? "inherit" : "none"};
           switch (config.scrollX) {
           case 'bottom':
             scrollbarXStyles.bottom = 0;
-            dom.content[isXActive ? 'addClass':'removeClass']('scrollable-bottom');
+            dom.content[isXActive || showAlways ? 'addClass' : 'removeClass']('scrollable-bottom');
+            dom.barX[isXActive || showAlways ? 'addClass' : 'removeClass']('scrollable-bottom');
             break;
           case 'top':
             scrollbarXStyles.top = 0;
-            dom.content[isXActive ? 'addClass':'removeClass']('scrollable-top');
+            dom.content[isXActive || showAlways ? 'addClass' : 'removeClass']('scrollable-top');
+            dom.barX[isXActive || showAlways ? 'addClass' : 'removeClass']('scrollable-top');
             break;
           }
           dom.barX.css(scrollbarXStyles);
+          dom.sliderX[0].style.display = isXActive ? 'inherit' : 'none';
         },
         updateBarY = function () {
-          var scrollbarYStyles = {top: 0, height: toPix(containerHeight), display: isYActive ? "inherit": "none"};
+          var showAlways = config.scrollYAlways,
+              scrollbarYStyles = {top: 0, height: toPix(containerHeight), display: isYActive || showAlways ? "inherit" : "none"};
           switch (config.scrollY) {
           case 'right':
             scrollbarYStyles.right = 0;
-            dom.content[isYActive ? 'addClass':'removeClass']('scrollable-right');
+            dom.content[isYActive || showAlways ? 'addClass' : 'removeClass']('scrollable-right');
+            dom.barY[isYActive || showAlways ? 'addClass' : 'removeClass']('scrollable-right');
             break;
           case 'left':
             scrollbarYStyles.left = 0;
-            dom.content[isYActive ? 'addClass':'removeClass']('scrollable-left');
+            dom.content[isYActive || showAlways ? 'addClass' : 'removeClass']('scrollable-left');
+            dom.barY[isYActive || showAlways ? 'addClass' : 'removeClass']('scrollable-left');
             break;
           }
           dom.barY.css(scrollbarYStyles);
+          dom.sliderY[0].style.display = isYActive ? 'inherit' : 'none';
         },
         scrollTo = function (left, top) {
           // clamp to 0 .. content{Height|Width} - container{Height|Width}
           contentTop = clamp(top, 0, contentHeight - containerHeight);
           contentLeft = clamp(left, 0, contentWidth - containerWidth);
-          var t = 'translate(' + toPix(-contentLeft) + ',' + toPix(-contentTop) + ')';
-          dom.content.css({ transform: t, '-webkit-transform': t });
-
+          dom.content[0].style[xform] = 'translate3d(' + toPix(-contentLeft) + ',' + toPix(-contentTop) + ',0)';
           // update external scroll spies
-          if (setter.spyX) {
-            setter.spyX($scope, contentLeft);
+          if (spySetter.spyX) {
+            spySetter.spyX($scope, parseInt(contentLeft, 10));
           }
-          if (setter.spyY) {
-            setter.spyY($scope, contentTop);
+          if (spySetter.spyY) {
+            spySetter.spyY($scope, parseInt(contentTop, 10));
           }
         },
         scrollX = function (pos) {
+          if (!isXActive) { return; }
           scrollTo(pos, contentTop);
           updateSliderX();
         },
         scrollY = function (pos) {
+          if (!isYActive) { return; }
           scrollTo(contentLeft, pos);
           updateSliderY();
         },
-        refresh = function () {
+        refresh = function (event, noNotify) {
           // read DOM
-          containerWidth = element[0].offsetWidth; // innerWidth() : element[0].width();
-          containerHeight = element[0].offsetHeight; // innerHeight() : element[0].height();
+          containerWidth = config.usePadding ? dom.el[0].clientWidth : dom.el[0].offsetWidth; // innerWidth() : elm[0].width();
+          containerHeight = config.usePadding ? dom.el[0].clientHeight : dom.el[0].offsetHeight; // elm[0].innerHeight() : elm[0].height();
           contentWidth = dom.content[0].scrollWidth;
           contentHeight = dom.content[0].scrollHeight;
 
@@ -211,55 +257,146 @@ angular.module('ngScrollable', [])
           updateBarY();
           updateSliderX();
           updateSliderY();
+
+          // broadcast the new dimensions down the scope stack so inner content
+          // controllers can react appropriatly
+          if (!noNotify) {
+            $scope.$broadcast('scrollable.dimensions', containerWidth, containerHeight, contentWidth, contentHeight, config.id);
+          }
         },
         stop = function (e, prevent) {
           e.stopPropagation();
           if (prevent) { e.preventDefault(); }
+          return false;
+        },
+        ypos = function (e) {
+          e = e.originalEvent || e;
+          // touch event
+          if (e.targetTouches && (e.targetTouches.length >= 1)) {
+            return e.targetTouches[0].pageY;
+          }
+          // mouse event
+          return e.pageY;
+        },
+        xpos = function (e) {
+          e = e.originalEvent || e;
+          // touch event
+          if (e.targetTouches && (e.targetTouches.length >= 1)) {
+            return e.targetTouches[0].pageX;
+          }
+          // mouse event
+          return e.pageX;
+        },
+        track = function () {
+          var now, elapsed, delta, v;
+
+          now = Date.now();
+          elapsed = now - trackTime;
+          trackTime = now;
+
+          // X
+          delta = contentLeft - frameX;
+          frameX = contentLeft;
+          v = 1000 * delta / (1 + elapsed);
+          velocityX = 0.8 * v + 0.2 * velocityX;
+          // Y
+          delta = contentTop - frameY;
+          frameY = contentTop;
+          v = 1000 * delta / (1 + elapsed);
+          velocityY = 0.8 * v + 0.2 * velocityY;
+
+        },
+        autoScrollX = function () {
+          var elapsed, delta;
+          if (amplitudeX) {
+            elapsed = Date.now() - trackTime;
+            delta = -amplitudeX * Math.exp(-elapsed / config.kineticTau);
+            if (delta > 0.5 || delta < -0.5) {
+              scrollX(targetX + delta);
+              $$rAF(autoScrollX);
+            } else {
+              scrollX(targetX);
+            }
+          }
+        },
+        autoScrollY = function () {
+          var elapsed, delta;
+          if (amplitudeY) {
+            elapsed = Date.now() - trackTime;
+            delta = -amplitudeY * Math.exp(-elapsed / config.kineticTau);
+            if (delta > 0.5 || delta < -0.5) {
+              scrollY(targetY + delta);
+              $$rAF(autoScrollY);
+            } else {
+              scrollY(targetY);
+            }
+          }
         },
         onMouseDownX = function (e) {
-          dragStartPageX = e.pageX;
+          dragStartPageX = xpos(e);
           dragStartLeft = contentLeft;
           isXScrolling = true;
-          element.addClass('active');
-          stop(e, true);
+          velocityX = amplitudeX = 0;
+          frameX = contentLeft;
+          if (!trackerTimeout) { trackerTimeout = $timeout(track, 100); }
+          dom.el.addClass('active');
+          return stop(e, true);
         },
         onMouseMoveX = function (e) {
           if (isXScrolling) {
             // scale slider move to content width
-            var deltaSlider = e.pageX - dragStartPageX,
-                deltaContent = parseInt(deltaSlider * (contentWidth - containerWidth) / (containerWidth - xSliderWidth), 10);
+            var deltaSlider = xpos(e) - dragStartPageX,
+                deltaContent = isTouchDevice ? -deltaSlider : parseInt(deltaSlider * (contentWidth - containerWidth) / (containerWidth - xSliderWidth), 10);
             scrollX(dragStartLeft + deltaContent);
-            stop(e, true);
+            return stop(e, true);
           }
         },
         onMouseUpX = function (e) {
           if (isXScrolling) {
             isXScrolling = false;
-            element.removeClass('active');
+            dom.el.removeClass('active');
             dragStartLeft = dragStartPageX = null;
+          }
+          // kinetic scroll
+          if (trackerTimeout) { $timeout.cancel(trackerTimeout); trackerTimeout = null; }
+          if (velocityX > 10 || velocityX < -10) {
+            amplitudeX = 0.8 * velocityX;
+            targetX = Math.round(contentLeft + amplitudeX);
+            trackTime = Date.now();
+            $$rAF(autoScrollX);
           }
         },
         onMouseDownY = function (e) {
-          dragStartPageY = e.pageY;
+          dragStartPageY = ypos(e);
           dragStartTop = contentTop;
           isYScrolling = true;
-          element.addClass('active');
-          stop(e, true);
+          velocityY = amplitudeY = 0;
+          frameY = contentTop;
+          if (!trackerTimeout) { trackerTimeout = $timeout(track, 100); }
+          dom.el.addClass('active');
+          return stop(e, true);
         },
         onMouseMoveY =  function (e) {
           if (isYScrolling) {
-            var deltaSlider = e.pageY - dragStartPageY,
-                deltaContent = parseInt(deltaSlider * (contentHeight - containerHeight) / (containerHeight - ySliderHeight), 10);
-
+            var deltaSlider = ypos(e) - dragStartPageY,
+                deltaContent = isTouchDevice ? -deltaSlider : parseInt(deltaSlider * (contentHeight - containerHeight) / (containerHeight - ySliderHeight), 10);
             scrollY(dragStartTop + deltaContent);
-            stop(e, true);
+            return stop(e, true);
           }
         },
         onMouseUpY =  function (e) {
           if (isYScrolling) {
             isYScrolling = false;
-            element.removeClass('active');
+            dom.el.removeClass('active');
             dragStartTop = dragStartPageY = null;
+          }
+          // kinetic scroll
+          if (trackerTimeout) { $timeout.cancel(trackerTimeout); trackerTimeout = null; }
+          if (velocityY > 10 || velocityY < -10) {
+            amplitudeY = 0.8 * velocityY;
+            targetY = Math.round(contentTop + amplitudeY);
+            trackTime = Date.now();
+            $$rAF(autoScrollY);
           }
         },
         // Get Offset without jquery
@@ -271,6 +408,7 @@ angular.module('ngScrollable', [])
               maxPositionLeft = containerWidth - xSliderWidth,
               positionRatio = clamp(positionLeft / maxPositionLeft, 0, 1);
           scrollX((contentWidth - containerWidth) * positionRatio);
+          $scope.$digest();
         },
         clickBarY = function (e) {
           var halfOfScrollbarLength = parseInt(ySliderHeight / 2, 10),
@@ -278,6 +416,7 @@ angular.module('ngScrollable', [])
               maxPositionTop = containerHeight - ySliderHeight,
               positionRatio = clamp(positionTop / maxPositionTop, 0, 1);
           scrollY((contentHeight - containerHeight) * positionRatio);
+          $scope.$digest();
         },
         hoverOn = function () { hovered = true; },
         hoverOff = function () { hovered = false; },
@@ -331,19 +470,18 @@ angular.module('ngScrollable', [])
 
           // prevent default scrolling
           e.preventDefault();
+          $scope.$digest();
         },
         handleWheel = function (e) {
           // with jquery use e.originalEvent.deltaX!!!
-          // Safari/Webkit: e.wheelDeltaX (event contains negative coordinates)
-          // FF30, Chrome35: e.deltaX
           e = e.originalEvent || e;
-          var deltaX = (angular.isDefined(e.wheelDeltaX) ? -e.wheelDeltaX : e.deltaX) * config.wheelSpeed,
-              deltaY = (angular.isDefined(e.wheelDeltaY) ? -e.wheelDeltaY : e.deltaY) * config.wheelSpeed;
+          var deltaX = e.deltaX * config.wheelSpeed,
+              deltaY = e.deltaY * config.wheelSpeed;
 
           // avoid flickering in Chrome: disabled animated translate
-          element.addClass('active');
+          dom.el.addClass('active');
           $timeout.cancel(activeTimeout);
-          activeTimeout = $timeout(function () {element.removeClass('active'); }, 500);
+          activeTimeout = $timeout(function () {dom.el.removeClass('active'); }, 500);
 
           if (!config.useBothWheelAxes) {
             // deltaX will only be used for horizontal scrolling and deltaY will
@@ -368,46 +506,157 @@ angular.module('ngScrollable', [])
             }
           }
 
-          // update bar position
-          refresh();
-
           // prevent default scrolling
           stop(e, true);
+          $scope.$digest();
+        },
+
+        registerHandlers = function () {
+          // bind DOM element handlers
+          if (config.updateOnResize) { dom.window.on('resize', refresh); }
+
+          if (config.scrollX !== 'none') {
+
+            // scrollbar clicks
+            dom.sliderX.on('click', stop);
+            dom.barX.on('click',    clickBarX);
+
+            if (isTouchDevice) {
+
+              // content touch/drag
+              dom.el.on('touchstart', onMouseDownX);
+              dom.el.on('touchmove',  onMouseMoveX);
+              dom.el.on('touchend',   onMouseUpX);
+
+            } else {
+
+              // slider drag
+              dom.sliderX.on('mousedown', onMouseDownX);
+              $document.on('mousemove', onMouseMoveX);
+              $document.on('mouseup',   onMouseUpX);
+
+            }
+          }
+
+          if (config.scrollY !== 'none') {
+
+            // scrollbar clicks
+            dom.sliderY.on('click', stop);
+            dom.barY.on('click',    clickBarY);
+
+
+            if (isTouchDevice) {
+
+              // content touch/drag
+              dom.el.on('touchstart', onMouseDownY);
+              dom.el.on('touchmove',  onMouseMoveY);
+              dom.el.on('touchend',   onMouseUpY);
+
+            } else {
+
+              // slider drag
+              dom.sliderY.on('mousedown', onMouseDownY);
+              $document.on('mousemove',   onMouseMoveY);
+              $document.on('mouseup',     onMouseUpY);
+
+            }
+          }
+
+          // mouse wheel
+          if (!isTouchDevice) {
+            dom.el.on('wheel',      handleWheel);
+          }
+
+          // keyboard
+          if (config.useKeyboard && !isTouchDevice) {
+            dom.el.on('mouseenter', hoverOn);
+            dom.el.on('mouseleave', hoverOff);
+            $document.on('keydown', handleKey);
+          }
+
+        },
+
+        unregisterHandlers = function () {
+          if (config.updateOnResize) { dom.window.off('resize', refresh); }
+
+          dom.sliderX.off('click', stop);
+          dom.barX.off('click',    clickBarX);
+          dom.sliderY.off('click', stop);
+          dom.barY.off('click',    clickBarY);
+
+          // touch
+          if (isTouchDevice) {
+            dom.el.off('touchstart', onMouseDownX);
+            dom.el.off('touchmove',  onMouseMoveX);
+            dom.el.off('touchend',   onMouseUpX);
+            dom.el.off('touchstart', onMouseDownY);
+            dom.el.off('touchmove',  onMouseMoveY);
+            dom.el.off('touchend',   onMouseUpY);
+          } else {
+
+            // slider drag
+            dom.sliderX.off('mousedown', onMouseDownX);
+            $document.off('mousemove',   onMouseMoveX);
+            $document.off('mouseup',     onMouseUpX);
+
+            dom.sliderY.off('mousedown', onMouseDownY);
+            $document.off('mousemove',   onMouseMoveY);
+            $document.off('mouseup',     onMouseUpY);
+
+            // keyboard
+            if (config.useKeyboard) {
+              // mouse hovering activates keyboard capture
+              dom.el.off('mouseenter', hoverOn);
+              dom.el.off('mouseleave', hoverOff);
+              $document.off('keydown', handleKey);
+            }
+
+            // mouse wheel
+            dom.el.off('wheel',      handleWheel);
+          }
+
         };
 
-        // watch and set spy attribute value expressions
-        angular.forEach(['spyX', 'spyY'], function (attr) {
-          if (attrs[attr]) {
-            // keep a setter to the spy expression (if settable)
-            setter[attr] = $parse(attrs[attr]).assign;
-            // watch the spy expression
-            $scope.$watch(attrs[attr], function (val) {
-              switch (attr) {
-              case 'spyX' :
-                scrollX(val);
-                break;
-              case 'spyY' :
-                scrollY(val);
-                break;
-              }
-            });
-          }
-        });
 
-        // init
-        refresh();
+        $scope.$on('content.reload', function (e, noNotify) {
 
-        // bind event handlers
-        // sent by controllers of transcluded content on change
-        $scope.$on('content.changed', function () {
+          // try unregistering event handlers
+          unregisterHandlers();
+
           // defer to next digest
           $timeout(function () {
+
             // update DOM node reference (because ui-view replaces nodes)
-            dom.content = angular.element(element.children()[0]);
+            dom.el = element(elem.children()[0]);
+            dom.content = element(dom.el.children()[0]);
+
+            // register handlers
+            registerHandlers();
+
             // refresh scrollbars
-            refresh();
+            refresh(e, noNotify);
+
           });
+
         });
+
+        // sent by controllers of transcluded content on change
+        $scope.$on('content.changed', function (e, wait, noNotify) {
+
+          // ms to wait before refresh
+          wait = wait || 100;
+
+          // defer to next digest
+          $timeout(function () {
+
+            // refresh scrollbars
+            refresh(e, noNotify);
+
+          }, wait);
+
+          e.preventDefault();
+        });
+
 
         // may be broadcast from outside to scroll to content edges
         $scope.$on('scrollable.scroll.left', function () {
@@ -430,55 +679,33 @@ angular.module('ngScrollable', [])
           $timeout(function () { scrollY(contentHeight); });
         });
 
-        // bind DOM element handlers
-        if (config.updateOnResize) { dom.window.on('resize', refresh); }
-        // scrollbar click
-        dom.sliderX.on('click', stop);
-        dom.barX.on('click', clickBarX);
-        dom.sliderY.on('click', stop);
-        dom.barY.on('click', clickBarY);
-        // slider drag
-        dom.sliderX.on('mousedown', onMouseDownX);
-        $document.on('mousemove', onMouseMoveX);
-        $document.on('mouseup', onMouseUpX);
-        dom.sliderY.on('mousedown', onMouseDownY);
-        $document.on('mousemove', onMouseMoveY);
-        $document.on('mouseup', onMouseUpY);
-        // keyboard
-        if (config.useKeyboard) {
-          element.on('mouseenter', hoverOn);
-          element.on('mouseleave', hoverOff);
-          $document.on('keydown', handleKey);
-        }
-        // mouse wheel
-        element.on('wheel', handleWheel);
-        element.on('mousewheel', handleWheel);
-
-
-        // (un)register event handlers on scope destroy for proper cleanup
+        // (un)register event handlers on scope destroy
         $scope.$on('$destroy', function () {
           $timeout.cancel(activeTimeout);
-          if (config.updateOnResize) { dom.window.off('resize', refresh); }
-          dom.sliderX.off('click', stop);
-          dom.barX.off('click', clickBarX);
-          dom.sliderY.off('click', stop);
-          dom.barY.off('click', clickBarY);
-          // slider drag
-          dom.sliderX.off('mousedown', onMouseDownX);
-          $document.off('mousemove', onMouseMoveX);
-          $document.off('mouseup',   onMouseUpX);
-          dom.sliderY.off('mousedown', onMouseDownY);
-          $document.off('mousemove', onMouseMoveY);
-          $document.off('mouseup',   onMouseUpY);
-          // keyboard
-          if (config.useKeyboard) {
-            element.off('mouseenter', hoverOn);
-            element.off('mouseleave', hoverOff);
-            $document.off('keydown', handleKey);
+          unregisterHandlers();
+        });
+
+        // init
+        registerHandlers();
+        refresh();
+
+        // watch and set spy attribute value expressions
+        angular.forEach(['spyX', 'spyY'], function (attr) {
+          if (attrs[attr]) {
+            // keep a setter to the spy expression (if settable)
+            spySetter[attr] = $parse(attrs[attr]).assign;
+            // watch the spy expression
+            $scope.$watch(attrs[attr], function (val) {
+              switch (attr) {
+              case 'spyX' :
+                scrollX(val);
+                break;
+              case 'spyY' :
+                scrollY(val);
+                break;
+              }
+            });
           }
-          // mouse wheel
-          element.off('wheel', handleWheel);
-          element.off('mousewheel', handleWheel);
         });
       }
     };
