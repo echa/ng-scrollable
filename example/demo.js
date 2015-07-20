@@ -12,4 +12,7 @@ app.controller('Demo', function ($scope) {
 	$scope.moveY = function (pixels) {
 		$scope.posY = $scope.posY + pixels;
 	};
+	$scope.$evalAsync(function () {
+		$scope.$broadcast('content.changed', 1000);
+	});
 });
