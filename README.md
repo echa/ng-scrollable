@@ -8,6 +8,8 @@ Why ng-scrollable?
 
 ng-scrollable exists because Firefox does not support scrollbar styling using CSS and other cross-browser alternatives either require jquery ([perfect-scrollbar](https://noraesae.github.io/perfect-scrollbar/)), are not flexible enough or unfriendly to layouts in complex single-page apps.
 
+I hope you can also make use of it in your projects.
+
 Demo: https://echa.github.com/ng-scrollable/
 
 Features
@@ -19,6 +21,7 @@ Features
 * It's fully customizable. CSS, scrollbar position and behaviour.
 * It's small. Minified size is 7.7k JS + 1.5k CSS.
 * It's pure Angular and Javascript. No jquery required.
+* It's MIT licensed.
 
 How to Use
 ----------
