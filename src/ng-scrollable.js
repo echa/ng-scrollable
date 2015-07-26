@@ -35,15 +35,23 @@ angular.module('ngScrollable', [])
 
     // dependencies
     var $document        = $injector.get('$document');
+    var $interval        = $injector.get('$interval');
     var $timeout         = $injector.get('$timeout');
     var $window          = $injector.get('$window');
     var $parse           = $injector.get('$parse');
-    var $$rAF            = $injector.get('$$rAF');
     var extend           = angular.extend;
     var element          = angular.element;
     var isDefined        = angular.isDefined;
     var isTouchDevice    = typeof $window.ontouchstart !== 'undefined';
     var xform            = 'transform';
+
+    // use requestAnimationFrame for kinetic scrolling
+    var $$rAF = $window.requestAnimationFrame || $window.webkitRequestAnimationFrame;
+
+    // Angular used to contain an internal service that is using a task queue
+    // in 1.4.x which makes it incompatible with smooth scrolling
+    //
+    // var $$rAF            = $injector.get('$$rAF');
 
     // find the correct CSS transform feature class name
     ['webkit', 'moz', 'o', 'ms'].every(function (prefix) {
@@ -338,9 +346,9 @@ angular.module('ngScrollable', [])
           isXScrolling = true;
           velocityX = amplitudeX = 0;
           frameX = contentLeft;
-          if (!trackerTimeout) { trackerTimeout = $timeout(track, 100); }
+          if (!trackerTimeout) { trackerTimeout = $interval(track, 100); }
           dom.el.addClass('active');
-          return stop(e, true);
+          return isTouchDevice || stop(e, !isTouchDevice);
         },
         onMouseMoveX = function (e) {
           if (isXScrolling) {
@@ -348,7 +356,7 @@ angular.module('ngScrollable', [])
             var deltaSlider = xpos(e) - dragStartPageX,
                 deltaContent = isTouchDevice ? -deltaSlider : parseInt(deltaSlider * (contentWidth - containerWidth) / (containerWidth - xSliderWidth), 10);
             scrollX(dragStartLeft + deltaContent);
-            return stop(e, true);
+            return isTouchDevice || stop(e, true);
           }
         },
         onMouseUpX = function (e) {
@@ -358,13 +366,14 @@ angular.module('ngScrollable', [])
             dragStartLeft = dragStartPageX = null;
           }
           // kinetic scroll
-          if (trackerTimeout) { $timeout.cancel(trackerTimeout); trackerTimeout = null; }
+          if (trackerTimeout) { $interval.cancel(trackerTimeout); trackerTimeout = null; }
           if (velocityX > 10 || velocityX < -10) {
             amplitudeX = 0.8 * velocityX;
             targetX = Math.round(contentLeft + amplitudeX);
             trackTime = Date.now();
             $$rAF(autoScrollX);
           }
+          return isTouchDevice || stop(e, !isTouchDevice);
         },
         onMouseDownY = function (e) {
           dragStartPageY = ypos(e);
@@ -372,16 +381,16 @@ angular.module('ngScrollable', [])
           isYScrolling = true;
           velocityY = amplitudeY = 0;
           frameY = contentTop;
-          if (!trackerTimeout) { trackerTimeout = $timeout(track, 100); }
+          if (!trackerTimeout) { trackerTimeout = $interval(track, 100); }
           dom.el.addClass('active');
-          return stop(e, true);
+          return isTouchDevice || stop(e, !isTouchDevice);
         },
         onMouseMoveY =  function (e) {
           if (isYScrolling) {
             var deltaSlider = ypos(e) - dragStartPageY,
                 deltaContent = isTouchDevice ? -deltaSlider : parseInt(deltaSlider * (contentHeight - containerHeight) / (containerHeight - ySliderHeight), 10);
             scrollY(dragStartTop + deltaContent);
-            return stop(e, true);
+            return isTouchDevice || stop(e, true);
           }
         },
         onMouseUpY =  function (e) {
@@ -391,13 +400,14 @@ angular.module('ngScrollable', [])
             dragStartTop = dragStartPageY = null;
           }
           // kinetic scroll
-          if (trackerTimeout) { $timeout.cancel(trackerTimeout); trackerTimeout = null; }
+          if (trackerTimeout) { $interval.cancel(trackerTimeout); trackerTimeout = null; }
           if (velocityY > 10 || velocityY < -10) {
             amplitudeY = 0.8 * velocityY;
             targetY = Math.round(contentTop + amplitudeY);
             trackTime = Date.now();
             $$rAF(autoScrollY);
           }
+          return isTouchDevice || stop(e, true);
         },
         // Get Offset without jquery
         // element.prop('offsetTop')
@@ -661,22 +671,22 @@ angular.module('ngScrollable', [])
         // may be broadcast from outside to scroll to content edges
         $scope.$on('scrollable.scroll.left', function () {
           // defer to next digest
-          $timeout(function () { scrollX(0); });
+          $scope.$applyAsync(function () { scrollX(0); });
         });
 
         $scope.$on('scrollable.scroll.right', function () {
           // defer to next digest
-          $timeout(function () { scrollX(contentWidth); });
+          $scope.$applyAsync(function () { scrollX(contentWidth); });
         });
 
         $scope.$on('scrollable.scroll.top', function () {
           // defer to next digest
-          $timeout(function () { scrollY(0); });
+          $scope.$applyAsync(function () { scrollY(0); });
         });
 
         $scope.$on('scrollable.scroll.bottom', function () {
           // defer to next digest
-          $timeout(function () { scrollY(contentHeight); });
+          $scope.$applyAsync(function () { scrollY(contentHeight); });
         });
 
         // (un)register event handlers on scope destroy
