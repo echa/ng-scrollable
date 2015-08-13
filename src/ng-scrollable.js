@@ -234,10 +234,10 @@ angular.module('ngScrollable', [])
               spySetter.spyY($scope, parseInt(contentTop, 10));
             }
             if (spySetter.spyCustomContentHeight) {
-              spySetter.spyCustomContentHeight($scope, parseInt(customContentHeight))
+              spySetter.spyCustomContentHeight($scope, parseInt(customContentHeight));
             }
             if (spySetter.spyCustomContentWidth) {
-              spySetter.spyCustomContentWidth($scope, parseInt(customContentWidth))
+              spySetter.spyCustomContentWidth($scope, parseInt(customContentWidth));
             }
           },
           scrollX = function (pos) {
