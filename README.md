@@ -149,6 +149,9 @@ Always show the vertical scrollbar even if the content is smaller than the conta
 ### usePadding
 Changes the way ng-scrollable determines content dimensions. When True, ng-scrollable uses clientWidth/Height instead of offsetWidth/Height.
 
+### updateContentPosition
+When set to false, the content is not scrolled when the scrollbars are changed. This allows to use the scrollbars as vertical and horizontal controls independently of the content. By default true.
+
 
 ### customContentWidth
 Custom content width to define the scrollbars size and range independently of the content size. Undefined by default (use the actual content width).
@@ -169,6 +172,13 @@ Spy on and control the horizontal scrollbar position.
 
 ### spyY
 Spy on and control the vertical scrollbar position.
+
+
+### spyCustomContentWidth
+Spy on and control the custom content width. Optional
+
+### spyCustomContentHeight
+Spy on and control the custom content height. Optional
 
 
 How does it work?
