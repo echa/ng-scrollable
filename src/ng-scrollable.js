@@ -78,7 +78,10 @@ angular.module('ngScrollable', [])
       useBothWheelAxes: false,
       useKeyboard: true,
       updateOnResize: true,
-      kineticTau: 325
+      kineticTau: 325,
+      customContentWidth: undefined,
+      customContentHeight: undefined,
+      updateContentPosition: true
     };
 
     return {
@@ -217,7 +220,12 @@ angular.module('ngScrollable', [])
           // clamp to 0 .. content{Height|Width} - container{Height|Width}
           contentTop = clamp(top, 0, contentHeight - containerHeight);
           contentLeft = clamp(left, 0, contentWidth - containerWidth);
-          dom.content[0].style[xform] = 'translate3d(' + toPix(-contentLeft) + ',' + toPix(-contentTop) + ',0)';
+
+          if (config.updateContentPosition) {
+            dom.content[0].style[xform] = 'translate3d(' + toPix(-contentLeft) + ',' + toPix(-contentTop) + ',0)';
+          }
+
+
           // update external scroll spies
           if (spySetter.spyX) {
             spySetter.spyX($scope, parseInt(contentLeft, 10));
@@ -240,8 +248,8 @@ angular.module('ngScrollable', [])
           // read DOM
           containerWidth = config.usePadding ? dom.el[0].clientWidth : dom.el[0].offsetWidth; // innerWidth() : elm[0].width();
           containerHeight = config.usePadding ? dom.el[0].clientHeight : dom.el[0].offsetHeight; // elm[0].innerHeight() : elm[0].height();
-          contentWidth = dom.content[0].scrollWidth;
-          contentHeight = dom.content[0].scrollHeight;
+          contentWidth = angular.isDefined(config.customContentWidth) ? config.customContentWidth : dom.content[0].scrollWidth;
+          contentHeight = angular.isDefined(config.customContentHeight) ? config.customContentHeight : dom.content[0].scrollHeight;
 
           // activate scrollbars
           if (config.scrollX !== 'none' && containerWidth + config.scrollXSlackSpace < contentWidth) {

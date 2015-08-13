@@ -150,6 +150,15 @@ Always show the vertical scrollbar even if the content is smaller than the conta
 Changes the way ng-scrollable determines content dimensions. When True, ng-scrollable uses clientWidth/Height instead of offsetWidth/Height.
 
 
+### customContentWidth
+Custom content width to define the scrollbars size and range independently of the content size. Undefined by default (use the actual content width).
+
+### customContentHeight
+Custom content height to define the scrollbars size and range independently of the content size. Undefined by default (use the actual content height).
+
+### updateContentPosition
+When set to false, the content is not scrolled when the scrollbars are changed. This allows to use the scrollbars as vertical and horizontal controls independently of the content. By default true.
+
 Optional attributes
 -------------------
 
