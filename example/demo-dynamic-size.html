@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>ng-scrollable</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../min/ng-scrollable.min.css" rel="stylesheet">
+    <style>
+        .logo {
+            font-size: 60px;
+            line-height: 70px;
+            font-weight: bold;
+        }
+
+        .sectionhead {
+            padding-top: 30px;
+        }
+
+        .scrollarea {
+            width: 100%;
+            height: 300px;
+            margin: 0 auto;
+            border : 1px dotted grey;
+        }
+
+        .demo {
+            width: 80%;
+            height: 200px;
+            margin-left: 10%;
+            margin-top: 50px;
+            border : 1px solid grey;
+        }
+    </style>
+</head>
+<body ng-app="app" class="text-center">
+<section>
+    <div class="container-fluid" ng-controller="Demo">
+        <div class="row">
+            <div class="col-md-6">
+                <h5>ng-scrollable with bars on both axes with custom sizes</h5>
+
+                <p><code>{{scrollableConfig | json}}</code></p>
+
+                <div ng-scrollable="scrollableConfig"
+                     spy-x="posX"
+                     spy-y="posY"
+                     spy-custom-content-height="customContentHeight"
+                     spy-custom-content-width="customContentWidth"
+                     class="scrollarea">
+                    <div class="demo" ng-style="demoStyle"></div>
+                </div>
+                <p>X {{posX}} Y {{posY}}</p>
+                <p>{{demoStyle.backgroundColor}}</p>
+
+                <i class="text-muted">Use mouse or keyboard to scroll.</i>
+            </div>
+        </div>
+    </div>
+</section>
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.3/angular.min.js"></script>
+<script src="../src/ng-scrollable.js"></script>
+<script src="demo-dynamic-size.js"></script>
+</body>
+</html>
