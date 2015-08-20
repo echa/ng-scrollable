@@ -79,6 +79,7 @@ angular.module('ngScrollable', [])
       useKeyboard: true,
       updateOnResize: true,
       kineticTau: 325,
+      enableKinetic:true,
       updateContentPosition:true
     };
 
@@ -380,13 +381,18 @@ angular.module('ngScrollable', [])
               dragStartLeft = dragStartPageX = null;
             }
             // kinetic scroll
-            if (trackerTimeout) { $interval.cancel(trackerTimeout); trackerTimeout = null; }
-            if (velocityX > 10 || velocityX < -10) {
-              amplitudeX = 0.8 * velocityX;
-              targetX = Math.round(contentLeft + amplitudeX);
-              trackTime = Date.now();
-              $$rAF(autoScrollX);
-            }
+            if (config.enableKinetic) {
+              if (trackerTimeout) {
+                $interval.cancel(trackerTimeout);
+                trackerTimeout = null;
+              }
+              if (velocityX > 10 || velocityX < -10) {
+                amplitudeX = 0.8 * velocityX;
+                targetX = Math.round(contentLeft + amplitudeX);
+                trackTime = Date.now();
+                $$rAF(autoScrollX);
+              }
+          }
             return isTouchDevice || stop(e, !isTouchDevice);
           },
           onMouseDownY = function (e) {
@@ -414,12 +420,17 @@ angular.module('ngScrollable', [])
               dragStartTop = dragStartPageY = null;
             }
             // kinetic scroll
-            if (trackerTimeout) { $interval.cancel(trackerTimeout); trackerTimeout = null; }
-            if (velocityY > 10 || velocityY < -10) {
-              amplitudeY = 0.8 * velocityY;
-              targetY = Math.round(contentTop + amplitudeY);
-              trackTime = Date.now();
-              $$rAF(autoScrollY);
+            if (config.enableKinetic) {
+              if (trackerTimeout) {
+                $interval.cancel(trackerTimeout);
+                trackerTimeout = null;
+              }
+              if (velocityY > 10 || velocityY < -10) {
+                amplitudeY = 0.8 * velocityY;
+                targetY = Math.round(contentTop + amplitudeY);
+                trackTime = Date.now();
+                $$rAF(autoScrollY);
+              }
             }
             return isTouchDevice || stop(e, true);
           },
