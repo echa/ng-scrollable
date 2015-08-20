@@ -162,6 +162,9 @@ Custom content height to define the scrollbars size and range independently of t
 ### updateContentPosition
 When set to false, the content is not scrolled when the scrollbars are changed. This allows to use the scrollbars as vertical and horizontal controls independently of the content. By default true.
 
+### enableKinetic
+By default true. If set to false, disables the Kinetic behaviour.
+
 Optional attributes
 -------------------
 

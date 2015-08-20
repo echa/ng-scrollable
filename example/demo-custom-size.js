@@ -13,7 +13,8 @@ app.controller('Demo', function ($scope) {
     $scope.customContentHeight = 1000;
 
     $scope.scrollableConfig = {
-        updateContentPosition: false
+        updateContentPosition: false,
+        enableKinetic: false
     };
 
     var _containerWidth = 0;
