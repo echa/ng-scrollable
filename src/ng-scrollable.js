@@ -248,16 +248,16 @@ angular.module('ngScrollable', [])
             isXActive = true;
           }
           else {
-            isXActive = false;
             scrollX(0);
+            isXActive = false;
           }
 
           if (config.scrollY !== 'none' && containerHeight + config.scrollYSlackSpace < contentHeight) {
             isYActive = true;
           }
           else {
-            isYActive = false;
             scrollY(0);
+            isYActive = false;
           }
 
           // update UI
@@ -265,9 +265,17 @@ angular.module('ngScrollable', [])
           updateBarY();
           updateSliderX();
           updateSliderY();
+          
+          // make sure scroll position isn't beyond content bounds
+          if (contentWidth < contentLeft + xSliderLeft + xSliderWidth) {
+            scrollX(xSliderLeft);
+          }
+          if (contentHeight < contentTop + ySliderTop + ySliderHeight) {
+            scrollY(ySliderTop);
+          }
 
           // broadcast the new dimensions down the scope stack so inner content
-          // controllers can react appropriatly
+          // controllers can react appropriately
           if (!noNotify) {
             $scope.$broadcast('scrollable.dimensions', containerWidth, containerHeight, contentWidth, contentHeight, config.id);
           }
