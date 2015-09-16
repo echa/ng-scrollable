@@ -48,6 +48,10 @@ angular.module('ngScrollable', [])
     // use requestAnimationFrame for kinetic scrolling
     var $$rAF = $window.requestAnimationFrame || $window.webkitRequestAnimationFrame;
 
+    // use MutationObserver to auto-refresh on DOM changes
+    // https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver
+    var MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
+
     // Angular used to contain an internal service that is using a task queue
     // in 1.4.x which makes it incompatible with smooth scrolling
     //
@@ -73,6 +77,7 @@ angular.module('ngScrollable', [])
       scrollXAlways: false,
       scrollYAlways: false,
       usePadding: false,
+      useObserver: true,
       wheelSpeed: 1,
       minSliderLength: 10,
       useBothWheelAxes: false,
@@ -98,6 +103,7 @@ angular.module('ngScrollable', [])
           sliderX: element(element(el.children()[1]).children()[0]),
           sliderY: element(element(el.children()[2]).children()[0])
         },
+        domObserver,
         isXActive = false,
         isYActive = false,
         containerWidth = 0,
@@ -265,7 +271,7 @@ angular.module('ngScrollable', [])
           updateBarY();
           updateSliderX();
           updateSliderY();
-          
+
           // make sure scroll position isn't beyond content bounds
           if (contentWidth < contentLeft + xSliderLeft + xSliderWidth) {
             scrollX(xSliderLeft);
@@ -530,6 +536,26 @@ angular.module('ngScrollable', [])
         },
 
         registerHandlers = function () {
+
+          // use MutationObserver
+          if (config.useObserver && MutationObserver) {
+
+            var observerConfig = {
+              // attributes: true, // Note: inefficient on large DOM + Angular!!
+              childList: true,
+              // characterData: true,
+              subtree: true
+            };
+
+            // create observer and debounce calls
+            domObserver = new MutationObserver(function () {
+              $$rAF(refresh);
+            });
+
+            // bind observer to scrollable content
+            domObserver.observe(dom.content[0], observerConfig);
+          }
+
           // bind DOM element handlers
           if (config.updateOnResize) { dom.window.on('resize', refresh); }
 
@@ -595,8 +621,17 @@ angular.module('ngScrollable', [])
         },
 
         unregisterHandlers = function () {
+
+          // disconnect observer
+          if (domObserver) {
+            domObserver.disconnect();
+            domObserver = null;
+          }
+
+          // global resize event
           if (config.updateOnResize) { dom.window.off('resize', refresh); }
 
+          // slider events
           dom.sliderX.off('click', stop);
           dom.barX.off('click',    clickBarX);
           dom.sliderY.off('click', stop);
