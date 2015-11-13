@@ -1,5 +1,5 @@
 /* =========================================================
- * ng-scrollable.js v0.2.0
+ * ng-scrollable.js
  * http://github.com/echa/ng-scrollable
  * =========================================================
  * Copyright 2014-2015 Alexander Eichhorn
@@ -82,6 +82,7 @@ angular.module('ngScrollable', [])
       minSliderLength: 10,
       useBothWheelAxes: false,
       useKeyboard: true,
+      preventKeyEvents: true,
       updateOnResize: true,
       kineticTau: 325
     };
@@ -446,7 +447,9 @@ angular.module('ngScrollable', [])
         hoverOff = function () { hovered = false; },
         handleKey = function (e) {
           var deltaX = 0, deltaY = 0, s = 30;
-          if (!hovered || $document[0].activeElement.isContentEditable ||
+          if (!hovered ||
+            $document[0].activeElement.isContentEditable ||
+            $document[0].activeElement.nodeName === 'INPUT' ||
             e.altKey || e.ctrlKey || e.metaKey) {
             return;
           }
@@ -493,7 +496,9 @@ angular.module('ngScrollable', [])
           scrollX(contentLeft + deltaX);
 
           // prevent default scrolling
-          e.preventDefault();
+          if (config.preventKeyEvents) {
+            e.preventDefault();
+          }
           $scope.$digest();
         },
         handleWheel = function (e) {

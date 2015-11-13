@@ -134,6 +134,10 @@ When set to true, and only one (vertical or horizontal) scrollbar is active then
 When set to true, keyboard events are used for scrolling when the mouse cursor hovers above the content. Small steps (30px) are triggered by up, down, left, right keys. Large steps (1x container width or height) are triggered by PageUp, PageDown, Home and End keys. If horizontal scrolling is inactive (either because `scrollX=='none'` or `contentWidth < containerWidth`) Home and End keys jump to top or bottom in vertical direction.
 **Default: true**
 
+### preventKeyEvents
+When set to true (default), keyboard events for all keys supported by ng-scrollable (`SPACE`, `LEFT-ARROW`, `RIGHT-ARROW`, `UP-ARROW`, `DOWN-ARROW`, `PAGE-UP`, `PAGE-DOWN`, `HOME`, `END`) are prevented from triggering their default action (e.g. like scrolling the entire document). To disable this feature in your app, pass `preventKeyEvents=false` as argument.
+**Default: true**
+
 ### useObserver
 When set to true ngScrollable will observe DOM changes inside the scrollable content such as the addition or removal of DOM nodes and automatically trigger a refresh. Note that you still need to *manually* refresh after layout changes by sending a `content.changed` event. That is when adding or removing CSS classes or styles that influence the size of the scrollable container or any of its content.
 **Default: true**
@@ -262,9 +266,9 @@ This project only considers supporting recent browser versions to keep the sourc
 
 I have verified this plugin works with the following Desktop browsers
 
-* Firefox 30 .. 40
-* Chrome 35 .. 43 and
-* Safari 6.1.4 .. 8.0.7 (OSX)
+* Firefox 30 .. 42
+* Chrome 35 .. 44 and
+* Safari 6.1.4 .. 9.0.1 (OSX)
 
 It may or may not work with other browsers. Let me know your experiences and send pull requests!
 
