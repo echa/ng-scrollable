@@ -233,11 +233,15 @@ angular.module('ngScrollable', [])
           }
         },
         scrollX = function (pos) {
+          //there was no event to listen from outside
+          $scope.$emit('scrollY');
           if (!isXActive) { return; }
           scrollTo(pos, contentTop);
           updateSliderX();
         },
         scrollY = function (pos) {
+          //there was no event to listen from outside
+          $scope.$emit('scrollY');
           if (!isYActive) { return; }
           scrollTo(contentLeft, pos);
           updateSliderY();
@@ -248,6 +252,30 @@ angular.module('ngScrollable', [])
           containerHeight = config.usePadding ? dom.el[0].clientHeight : dom.el[0].offsetHeight; // elm[0].innerHeight() : elm[0].height();
           contentWidth = dom.content[0].scrollWidth;
           contentHeight = dom.content[0].scrollHeight;
+
+          // dom.content[0].scrollHeight works incorrectly in some chromium versions, so we calcaulate it manually
+
+          function fullHeight(elm) {
+            var elmHeight, elmMargin;
+            if (document.all) {// IE
+              elmHeight = parseInt(elm.currentStyle.height);
+              elmMargin = parseInt(elm.currentStyle.marginTop, 10) + parseInt(elm.currentStyle.marginBottom, 10);
+            } else {// Mozilla
+              elmHeight = parseInt(document.defaultView.getComputedStyle(elm, '').getPropertyValue('height'));
+              elmMargin = parseInt(document.defaultView.getComputedStyle(elm, '').getPropertyValue('margin-top')) + parseInt(document.defaultView.getComputedStyle(elm, '').getPropertyValue('margin-bottom'));
+            }
+            if (!isNaN(elmHeight + elmMargin)) {
+              return elmHeight + elmMargin;
+            } else {
+              return 0;
+            }
+          }
+
+          var _summHeight = 0;
+          [].forEach.call(dom.content.children(), function (item) {
+            _summHeight += fullHeight(item);
+          });
+          contentHeight = _summHeight;
 
           // activate scrollbars
           if (config.scrollX !== 'none' && containerWidth + config.scrollXSlackSpace < contentWidth) {
@@ -445,6 +473,11 @@ angular.module('ngScrollable', [])
         hoverOn = function () { hovered = true; },
         hoverOff = function () { hovered = false; },
         handleKey = function (e) {
+
+          // some keys must not be prevented: it can spoil an application - space bar for instance.
+          var _noPrevent = false;
+
+
           var deltaX = 0, deltaY = 0, s = 30;
           if (!hovered || $document[0].activeElement.isContentEditable ||
             e.altKey || e.ctrlKey || e.metaKey) {
@@ -454,24 +487,32 @@ angular.module('ngScrollable', [])
           switch (e.which) {
           case 37: // left
             deltaX = -s;
+            _noPrevent = true;
             break;
           case 38: // up
             deltaY = s;
+            _noPrevent = true;
             break;
           case 39: // right
             deltaX = s;
+            _noPrevent = true;
             break;
           case 40: // down
             deltaY = -s;
+            _noPrevent = true;
             break;
           case 33: // page up
             deltaY = containerHeight;
             break;
           case 32: // space bar
+            deltaY = -containerHeight;
+            _noPrevent = true;
+            break;
           case 34: // page down
             deltaY = -containerHeight;
             break;
           case 35: // end
+            _noPrevent = true;
             if (isYActive && !isXActive) {
               deltaY = -contentHeight;
             } else {
@@ -479,6 +520,7 @@ angular.module('ngScrollable', [])
             }
             break;
           case 36: // home
+            _noPrevent = true;
             if (isYActive && !isXActive) {
               deltaY = contentHeight;
             } else {
@@ -493,10 +535,17 @@ angular.module('ngScrollable', [])
           scrollX(contentLeft + deltaX);
 
           // prevent default scrolling
-          e.preventDefault();
+          if (!_noPrevent) {
+            e.preventDefault();
+          }
           $scope.$digest();
         },
         handleWheel = function (e) {
+          //there is a bug in firefox
+          if (navigator.userAgent.toLowerCase().indexOf('firefox') > -1) {
+            config.wheelSpeed = 17.6;
+          }
+
           // with jquery use e.originalEvent.deltaX!!!
           e = e.originalEvent || e;
           var deltaX = e.deltaX * config.wheelSpeed,
