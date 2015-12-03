@@ -379,16 +379,17 @@ angular.module('ngScrollable', [])
             isXScrolling = false;
             dom.el.removeClass('active');
             dragStartLeft = dragStartPageX = null;
+
+            // kinetic scroll
+            if (trackerTimeout) { $interval.cancel(trackerTimeout); trackerTimeout = null; }
+            if (velocityX > 10 || velocityX < -10) {
+              amplitudeX = 0.8 * velocityX;
+              targetX = Math.round(contentLeft + amplitudeX);
+              trackTime = Date.now();
+              $$rAF(autoScrollX);
+            }
+            return isTouchDevice || stop(e, !isTouchDevice);
           }
-          // kinetic scroll
-          if (trackerTimeout) { $interval.cancel(trackerTimeout); trackerTimeout = null; }
-          if (velocityX > 10 || velocityX < -10) {
-            amplitudeX = 0.8 * velocityX;
-            targetX = Math.round(contentLeft + amplitudeX);
-            trackTime = Date.now();
-            $$rAF(autoScrollX);
-          }
-          return isTouchDevice || stop(e, !isTouchDevice);
         },
         onMouseDownY = function (e) {
           dragStartPageY = ypos(e);
@@ -413,16 +414,17 @@ angular.module('ngScrollable', [])
             isYScrolling = false;
             dom.el.removeClass('active');
             dragStartTop = dragStartPageY = null;
+
+            // kinetic scroll
+            if (trackerTimeout) { $interval.cancel(trackerTimeout); trackerTimeout = null; }
+            if (velocityY > 10 || velocityY < -10) {
+              amplitudeY = 0.8 * velocityY;
+              targetY = Math.round(contentTop + amplitudeY);
+              trackTime = Date.now();
+              $$rAF(autoScrollY);
+            }
+            return isTouchDevice || stop(e, true);
           }
-          // kinetic scroll
-          if (trackerTimeout) { $interval.cancel(trackerTimeout); trackerTimeout = null; }
-          if (velocityY > 10 || velocityY < -10) {
-            amplitudeY = 0.8 * velocityY;
-            targetY = Math.round(contentTop + amplitudeY);
-            trackTime = Date.now();
-            $$rAF(autoScrollY);
-          }
-          return isTouchDevice || stop(e, true);
         },
         // Get Offset without jquery
         // element.prop('offsetTop')
