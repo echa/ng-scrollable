@@ -39,6 +39,7 @@ angular.module('ngScrollable', [])
     var $timeout         = $injector.get('$timeout');
     var $window          = $injector.get('$window');
     var $parse           = $injector.get('$parse');
+    var bind             = angular.bind;
     var extend           = angular.extend;
     var element          = angular.element;
     var isDefined        = angular.isDefined;
@@ -84,7 +85,8 @@ angular.module('ngScrollable', [])
       useKeyboard: true,
       preventKeyEvents: true,
       updateOnResize: true,
-      kineticTau: 325
+      kineticTau: 325,
+      spyMargin: 1
     };
 
     return {
@@ -135,12 +137,19 @@ angular.module('ngScrollable', [])
         amplitudeY = 0,
         frameY = 0,
         targetY = 0,
+        wheelTime,
         trackTime,
         trackerTimeout,
 
         toPix = function (v) { return v.toFixed(3) + 'px'; },
         clamp = function (val, min, max) {
           return Math.max(min, Math.min(val, max));
+        },
+        safeDigest = function () {
+          var phase = $scope.$root ? $scope.$root.$$phase : $scope.$$phase;
+          if (phase !== '$apply' && phase !== '$digest') {
+            $scope.$digest();
+          }
         },
         updateSliderX = function () {
           // adjust container width by the amount of border pixels so that the
@@ -221,17 +230,42 @@ angular.module('ngScrollable', [])
           dom.sliderY[0].style.display = isYActive ? 'inherit' : 'none';
         },
         scrollTo = function (left, top) {
+          var oldTop = contentTop;
+          var oldLeft = contentLeft;
+          var needsDigest = false;
+
           // clamp to 0 .. content{Height|Width} - container{Height|Width}
           contentTop = clamp(top, 0, contentHeight - containerHeight);
           contentLeft = clamp(left, 0, contentWidth - containerWidth);
           dom.content[0].style[xform] = 'translate3d(' + toPix(-contentLeft) + ',' + toPix(-contentTop) + ',0)';
+
           // update external scroll spies
           if (spySetter.spyX) {
             spySetter.spyX($scope, parseInt(contentLeft, 10));
+            needsDigest = true;
           }
           if (spySetter.spyY) {
             spySetter.spyY($scope, parseInt(contentTop, 10));
+            needsDigest = true;
           }
+          if (needsDigest) {
+            safeDigest();
+          }
+
+          // fire scrollSpy events only when entering a margin
+          if (contentTop < containerHeight * config.spyMargin && oldTop >= containerHeight * config.spyMargin) {
+            $scope.$broadcast('scrollable.spytop', contentTop, config.id);
+          }
+          if (contentTop > contentHeight - containerHeight * (config.spyMargin + 1) && oldTop <= contentHeight - containerHeight * (config.spyMargin + 1)) {
+            $scope.$broadcast('scrollable.spybottom', contentTop, config.id);
+          }
+          if (contentLeft < containerWidth * config.spyMargin && oldLeft >= containerWidth * config.spyMargin) {
+            $scope.$broadcast('scrollable.spyleft', contentLeft, config.id);
+          }
+          if (contentLeft > contentWidth - containerWidth * (config.spyMargin + 1) && oldLeft <= contentWidth - containerWidth * (config.spyMargin + 1)) {
+            $scope.$broadcast('scrollable.spyright', contentLeft, config.id);
+          }
+
         },
         scrollX = function (pos) {
           if (!isXActive) { return; }
@@ -361,21 +395,31 @@ angular.module('ngScrollable', [])
           isXScrolling = true;
           velocityX = amplitudeX = 0;
           frameX = contentLeft;
-          if (!trackerTimeout) { trackerTimeout = $interval(track, 100); }
+          if (!isTouchDevice) {
+            $document.on('mousemove', onMouseMoveX);
+            $document.on('mouseup',   onMouseUpX);
+          }
+          if (isTouchDevice && !trackerTimeout) {
+            trackerTimeout = $interval(track, 100);
+          }
           dom.el.addClass('active');
-          return isTouchDevice || stop(e, !isTouchDevice);
+          return isTouchDevice || stop(e, true);
         },
         onMouseMoveX = function (e) {
           if (isXScrolling) {
             // scale slider move to content width
             var deltaSlider = xpos(e) - dragStartPageX,
                 deltaContent = isTouchDevice ? -deltaSlider : parseInt(deltaSlider * (contentWidth - containerWidth) / (containerWidth - xSliderWidth), 10);
-            scrollX(dragStartLeft + deltaContent);
+            $$rAF(bind(null, scrollX, dragStartLeft + deltaContent));
             return stop(e, true);
           }
         },
         onMouseUpX = function (e) {
           if (isXScrolling) {
+            if (!isTouchDevice) {
+              $document.off('mousemove', onMouseMoveX);
+              $document.off('mouseup',   onMouseUpX);
+            }
             isXScrolling = false;
             dom.el.removeClass('active');
             dragStartLeft = dragStartPageX = null;
@@ -388,7 +432,7 @@ angular.module('ngScrollable', [])
             trackTime = Date.now();
             $$rAF(autoScrollX);
           }
-          return isTouchDevice || stop(e, !isTouchDevice);
+          return isTouchDevice || stop(e, true);
         },
         onMouseDownY = function (e) {
           dragStartPageY = ypos(e);
@@ -396,20 +440,30 @@ angular.module('ngScrollable', [])
           isYScrolling = true;
           velocityY = amplitudeY = 0;
           frameY = contentTop;
-          if (!trackerTimeout) { trackerTimeout = $interval(track, 100); }
+          if (!isTouchDevice) {
+            $document.on('mousemove',   onMouseMoveY);
+            $document.on('mouseup',     onMouseUpY);
+          }
+          if (isTouchDevice && !trackerTimeout) {
+            trackerTimeout = $interval(track, 100);
+          }
           dom.el.addClass('active');
-          return isTouchDevice || stop(e, !isTouchDevice);
+          return isTouchDevice || stop(e, true);
         },
         onMouseMoveY =  function (e) {
           if (isYScrolling) {
             var deltaSlider = ypos(e) - dragStartPageY,
                 deltaContent = isTouchDevice ? -deltaSlider : parseInt(deltaSlider * (contentHeight - containerHeight) / (containerHeight - ySliderHeight), 10);
-            scrollY(dragStartTop + deltaContent);
+            $$rAF(bind(null, scrollY, dragStartTop + deltaContent));
             return stop(e, true);
           }
         },
         onMouseUpY =  function (e) {
           if (isYScrolling) {
+            if (!isTouchDevice) {
+              $document.off('mousemove',   onMouseMoveY);
+              $document.off('mouseup',     onMouseUpY);
+            }
             isYScrolling = false;
             dom.el.removeClass('active');
             dragStartTop = dragStartPageY = null;
@@ -432,16 +486,14 @@ angular.module('ngScrollable', [])
               positionLeft = e.clientX - dom.barX[0].getBoundingClientRect().left - halfOfScrollbarLength,
               maxPositionLeft = containerWidth - xSliderWidth,
               positionRatio = clamp(positionLeft / maxPositionLeft, 0, 1);
-          scrollX((contentWidth - containerWidth) * positionRatio);
-          $scope.$digest();
+          $$rAF(bind(null, scrollX, (contentWidth - containerWidth) * positionRatio));
         },
         clickBarY = function (e) {
           var halfOfScrollbarLength = parseInt(ySliderHeight / 2, 10),
               positionTop = e.clientY - dom.barY[0].getBoundingClientRect().top - halfOfScrollbarLength,
               maxPositionTop = containerHeight - ySliderHeight,
               positionRatio = clamp(positionTop / maxPositionTop, 0, 1);
-          scrollY((contentHeight - containerHeight) * positionRatio);
-          $scope.$digest();
+          $$rAF(bind(null, scrollY, (contentHeight - containerHeight) * positionRatio));
         },
         hoverOn = function () { hovered = true; },
         hoverOff = function () { hovered = false; },
@@ -492,14 +544,22 @@ angular.module('ngScrollable', [])
             return;
           }
 
-          scrollY(contentTop - deltaY);
-          scrollX(contentLeft + deltaX);
+          $$rAF(bind(null, scrollY, contentTop - deltaY));
+          $$rAF(bind(null, scrollX, contentLeft + deltaX));
 
           // prevent default scrolling
           if (config.preventKeyEvents) {
             e.preventDefault();
           }
-          $scope.$digest();
+        },
+        timeoutWheel = function () {
+          var elapsed = Date.now() - wheelTime;
+          if (elapsed < 500) {
+            activeTimeout = $timeout(timeoutWheel, 500 - elapsed);
+          } else {
+            dom.el.removeClass('active');
+            activeTimeout = null;
+          }
         },
         handleWheel = function (e) {
           // with jquery use e.originalEvent.deltaX!!!
@@ -508,36 +568,37 @@ angular.module('ngScrollable', [])
               deltaY = e.deltaY * config.wheelSpeed;
 
           // avoid flickering in Chrome: disabled animated translate
-          dom.el.addClass('active');
-          $timeout.cancel(activeTimeout);
-          activeTimeout = $timeout(function () {dom.el.removeClass('active'); }, 500);
+          wheelTime = Date.now();
+          if (!activeTimeout) {
+            dom.el.addClass('active');
+            activeTimeout = $timeout(timeoutWheel, 500);
+          }
 
           if (!config.useBothWheelAxes) {
             // deltaX will only be used for horizontal scrolling and deltaY will
             // only be used for vertical scrolling - this is the default
-            scrollY(contentTop + deltaY);
-            scrollX(contentLeft + deltaX);
+            $$rAF(bind(null, scrollY, contentTop + deltaY));
+            $$rAF(bind(null, scrollX, contentLeft + deltaX));
           } else if (isYActive && !isXActive) {
             // only vertical scrollbar is active and useBothWheelAxes option is
             // active, so let's scroll vertical bar using both mouse wheel axes
             if (deltaY) {
-              scrollY(contentTop + deltaY);
+              $$rAF(bind(null, scrollY, contentTop + deltaY));
             } else {
-              scrollY(contentTop + deltaX);
+              $$rAF(bind(null, scrollY, contentTop + deltaX));
             }
           } else if (isXActive && !isYActive) {
             // useBothWheelAxes and only horizontal bar is active, so use both
             // wheel axes for horizontal bar
             if (deltaX) {
-              scrollX(contentLeft + deltaX);
+              $$rAF(bind(null, scrollX, contentLeft + deltaX));
             } else {
-              scrollX(contentLeft + deltaY);
+              $$rAF(bind(null, scrollX, contentLeft + deltaY));
             }
           }
 
           // prevent default scrolling
           stop(e, true);
-          $scope.$digest();
         },
 
         registerHandlers = function () {
@@ -581,8 +642,6 @@ angular.module('ngScrollable', [])
 
               // slider drag
               dom.sliderX.on('mousedown', onMouseDownX);
-              $document.on('mousemove', onMouseMoveX);
-              $document.on('mouseup',   onMouseUpX);
 
             }
           }
@@ -605,8 +664,6 @@ angular.module('ngScrollable', [])
 
               // slider drag
               dom.sliderY.on('mousedown', onMouseDownY);
-              $document.on('mousemove',   onMouseMoveY);
-              $document.on('mouseup',     onMouseUpY);
 
             }
           }
