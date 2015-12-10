@@ -411,7 +411,7 @@ angular.module('ngScrollable', [])
             var deltaSlider = xpos(e) - dragStartPageX,
                 deltaContent = isTouchDevice ? -deltaSlider : parseInt(deltaSlider * (contentWidth - containerWidth) / (containerWidth - xSliderWidth), 10);
             $$rAF(bind(null, scrollX, dragStartLeft + deltaContent));
-            return stop(e, true);
+            return isTouchDevice || stop(e, true);
           }
         },
         onMouseUpX = function (e) {
@@ -455,7 +455,7 @@ angular.module('ngScrollable', [])
             var deltaSlider = ypos(e) - dragStartPageY,
                 deltaContent = isTouchDevice ? -deltaSlider : parseInt(deltaSlider * (contentHeight - containerHeight) / (containerHeight - ySliderHeight), 10);
             $$rAF(bind(null, scrollY, dragStartTop + deltaContent));
-            return stop(e, true);
+            return isTouchDevice || stop(e, true);
           }
         },
         onMouseUpY =  function (e) {
