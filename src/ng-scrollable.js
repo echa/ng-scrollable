@@ -229,16 +229,8 @@ angular.module('ngScrollable', [])
           dom.barY.css(scrollbarYStyles);
           dom.sliderY[0].style.display = isYActive ? 'inherit' : 'none';
         },
-        scrollTo = function (left, top) {
-          var oldTop = contentTop;
-          var oldLeft = contentLeft;
+        updateSpies = function () {
           var needsDigest = false;
-
-          // clamp to 0 .. content{Height|Width} - container{Height|Width}
-          contentTop = clamp(top, 0, contentHeight - containerHeight);
-          contentLeft = clamp(left, 0, contentWidth - containerWidth);
-          dom.content[0].style[xform] = 'translate3d(' + toPix(-contentLeft) + ',' + toPix(-contentTop) + ',0)';
-
           // update external scroll spies
           if (spySetter.spyX) {
             spySetter.spyX($scope, parseInt(contentLeft, 10));
@@ -251,6 +243,18 @@ angular.module('ngScrollable', [])
           if (needsDigest) {
             safeDigest();
           }
+        },
+        scrollTo = function (left, top) {
+          var oldTop = contentTop;
+          var oldLeft = contentLeft;
+
+          // clamp to 0 .. content{Height|Width} - container{Height|Width}
+          contentTop = clamp(top, 0, contentHeight - containerHeight);
+          contentLeft = clamp(left, 0, contentWidth - containerWidth);
+          dom.content[0].style[xform] = 'translate3d(' + toPix(-contentLeft) + ',' + toPix(-contentTop) + ',0)';
+
+          // update spies async to avoid overwriting one spy while a $watch is pending
+          $scope.$applyAsync(updateSpies);
 
           // fire scrollSpy events only when entering a margin
           if (contentTop < containerHeight * config.spyMargin && oldTop >= containerHeight * config.spyMargin) {
