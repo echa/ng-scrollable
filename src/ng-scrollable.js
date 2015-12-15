@@ -404,7 +404,7 @@ angular.module('ngScrollable', [])
             $document.on('mouseup',   onMouseUpX);
           }
           if (isTouchDevice && !trackerTimeout) {
-            trackerTimeout = $interval(track, 100);
+            trackerTimeout = $interval(track, 50);
           }
           dom.el.addClass('active');
           return isTouchDevice || stop(e, true);
@@ -415,7 +415,8 @@ angular.module('ngScrollable', [])
             var deltaSlider = xpos(e) - dragStartPageX,
                 deltaContent = isTouchDevice ? -deltaSlider : parseInt(deltaSlider * (contentWidth - containerWidth) / (containerWidth - xSliderWidth), 10);
             $$rAF(bind(null, scrollX, dragStartLeft + deltaContent));
-            return isTouchDevice || stop(e, true);
+            // stop also on touch devices
+            return stop(e, true);
           }
         },
         onMouseUpX = function (e) {
@@ -449,10 +450,11 @@ angular.module('ngScrollable', [])
             $document.on('mouseup',     onMouseUpY);
           }
           if (isTouchDevice && !trackerTimeout) {
-            trackerTimeout = $interval(track, 100);
+            trackerTimeout = $interval(track, 50);
           }
           dom.el.addClass('active');
-          return isTouchDevice || stop(e, true);
+          // stop also on touch devices
+          return stop(e, true);
         },
         onMouseMoveY =  function (e) {
           if (isYScrolling) {
