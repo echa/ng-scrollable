@@ -129,6 +129,7 @@ angular.module('ngScrollable', [])
         activeTimeout,
         spySetter = {},
         // kinetic scrolling
+        lineHeight = 1,
         velocityX = 0,
         amplitudeX = 0,
         frameX = 0,
@@ -287,6 +288,7 @@ angular.module('ngScrollable', [])
           containerHeight = config.usePadding ? dom.el[0].clientHeight : dom.el[0].offsetHeight; // elm[0].innerHeight() : elm[0].height();
           contentWidth = dom.content[0].scrollWidth;
           contentHeight = dom.content[0].scrollHeight;
+          lineHeight = parseFloat($window.getComputedStyle(dom.el[0], null).getPropertyValue('font-size'));
 
           // activate scrollbars
           if (config.scrollX !== 'none' && containerWidth + config.scrollXSlackSpace < contentWidth) {
@@ -567,11 +569,19 @@ angular.module('ngScrollable', [])
             activeTimeout = null;
           }
         },
+        horizontalEdge = function (deltaX) {
+          return ((contentLeft + deltaX <= 0) || (contentLeft + deltaX >= contentWidth - containerWidth));
+        },
+        verticalEdge = function (deltaY) {
+          return ((contentTop + deltaY <= 0) || (contentTop + deltaY >= contentHeight - containerHeight));
+        },
         handleWheel = function (e) {
           // with jquery use e.originalEvent.deltaX!!!
           e = e.originalEvent || e;
-          var deltaX = e.deltaX * config.wheelSpeed,
-              deltaY = e.deltaY * config.wheelSpeed;
+          var h = e.deltaMode ? lineHeight : 1,
+              deltaX = e.deltaX * h * config.wheelSpeed,
+              deltaY = e.deltaY * h * config.wheelSpeed,
+              stopit = true;
 
           // avoid flickering in Chrome: disabled animated translate
           wheelTime = Date.now();
@@ -585,26 +595,38 @@ angular.module('ngScrollable', [])
             // only be used for vertical scrolling - this is the default
             $$rAF(bind(null, scrollY, contentTop + deltaY));
             $$rAF(bind(null, scrollX, contentLeft + deltaX));
+            if (isYActive) {
+              stopit = !verticalEdge(0);
+            }
+            // if (isXActive) {
+            //   stopit = stopit && !deltaY && !horizontalEdge(0);
+            // }
           } else if (isYActive && !isXActive) {
             // only vertical scrollbar is active and useBothWheelAxes option is
             // active, so let's scroll vertical bar using both mouse wheel axes
             if (deltaY) {
               $$rAF(bind(null, scrollY, contentTop + deltaY));
+              stopit = !verticalEdge(deltaY);
             } else {
               $$rAF(bind(null, scrollY, contentTop + deltaX));
+              stopit = !verticalEdge(deltaX);
             }
           } else if (isXActive && !isYActive) {
             // useBothWheelAxes and only horizontal bar is active, so use both
             // wheel axes for horizontal bar
             if (deltaX) {
               $$rAF(bind(null, scrollX, contentLeft + deltaX));
+              stopit = !horizontalEdge(deltaX);
             } else {
               $$rAF(bind(null, scrollX, contentLeft + deltaY));
+              stopit = !horizontalEdge(deltaY);
             }
           }
 
-          // prevent default scrolling
-          stop(e, true);
+          // prevent default scrolling until edge is reached
+          if (stopit) {
+            stop(e, true);
+          }
         },
 
         registerHandlers = function () {
@@ -817,6 +839,10 @@ angular.module('ngScrollable', [])
             spySetter[attr] = $parse(attrs[attr]).assign;
             // watch the spy expression
             $scope.$watch(attrs[attr], function (val) {
+              // protect against nulls and undefineds, which are possible
+              // on first request if spy variables haven't been set
+              // on outer scope
+              val = val || 0;
               switch (attr) {
               case 'spyX' :
                 scrollX(val);
