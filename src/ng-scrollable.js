@@ -156,7 +156,7 @@ angular.module('ngScrollable', [])
           // adjust container width by the amount of border pixels so that the
           // slider does not extend outside the bar region
           var cw = containerWidth - 3;
-          if (isXActive) {
+          if (isXActive || config.scrollXAlways) {
             xSliderWidth = Math.max(config.minSliderLength, parseInt(cw * cw / contentWidth, 10));
             xSliderLeft = parseInt(contentLeft * (cw - xSliderWidth) / (contentWidth - cw), 10);
 
@@ -177,7 +177,7 @@ angular.module('ngScrollable', [])
           // adjust container height by the amount of border pixels so that the
           // slider does not extend outside the bar region
           var ch = containerHeight - 3;
-          if (isYActive) {
+          if (isYActive || config.scrollYAlways) {
             ySliderHeight = Math.max(config.minSliderLength, parseInt(ch * ch / contentHeight, 10));
             ySliderTop = parseInt(contentTop * (ch - ySliderHeight) / (contentHeight - ch), 10);
 
@@ -210,7 +210,7 @@ angular.module('ngScrollable', [])
             break;
           }
           dom.barX.css(scrollbarXStyles);
-          dom.sliderX[0].style.display = isXActive ? 'inherit' : 'none';
+          dom.sliderX[0].style.display = isXActive || showAlways ? 'inherit' : 'none';
         },
         updateBarY = function () {
           var showAlways = config.scrollYAlways,
@@ -228,7 +228,7 @@ angular.module('ngScrollable', [])
             break;
           }
           dom.barY.css(scrollbarYStyles);
-          dom.sliderY[0].style.display = isYActive ? 'inherit' : 'none';
+          dom.sliderY[0].style.display = isYActive || showAlways ? 'inherit' : 'none';
         },
         updateSpies = function () {
           var needsDigest = false;
