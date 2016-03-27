@@ -19,7 +19,7 @@ Features
 * It's soft scrolling using CSS3 translate3d, transition and requestAnimationFrame.
 * It's responsive, and friendly to your layout.
 * It's fully customizable. CSS, scrollbar position and behaviour.
-* It's small. Minified size is 7.7k JS + 1.5k CSS.
+* It's small. Minified size is 9.8k JS + 1.4k CSS.
 * It's pure Angular and Javascript. No jquery required.
 * It's MIT licensed.
 
@@ -225,6 +225,12 @@ scope.getPos = function () { return pos; }
 // Template
 <div ng-scrollable spy-y="getPos()"></div>
 ```
+
+Optional CSS classes
+--------------------
+
+ng-scrollable looks for the option CSS class `scrollable-ignore` when processing wheel events and does not scroll its content when present. You may use this class anywhere inside the scrollable-content container to define nodes that should be excluded from scrolling such as dropdown menus or other `overflow: scroll` elements.
+
 
 
 How does it work?
