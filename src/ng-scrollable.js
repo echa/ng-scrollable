@@ -288,7 +288,7 @@ angular.module('ngScrollable', [])
           containerHeight = config.usePadding ? dom.el[0].clientHeight : dom.el[0].offsetHeight; // elm[0].innerHeight() : elm[0].height();
           contentWidth = dom.content[0].scrollWidth;
           contentHeight = dom.content[0].scrollHeight;
-          lineHeight = parseFloat($window.getComputedStyle(dom.el[0], null).getPropertyValue('font-size'));
+          lineHeight = parseFloat(dom.window[0].getComputedStyle(dom.el[0], null).getPropertyValue('font-size'));
 
           // activate scrollbars
           if (config.scrollX !== 'none' && containerWidth + config.scrollXSlackSpace < contentWidth) {
@@ -401,10 +401,8 @@ angular.module('ngScrollable', [])
           isXScrolling = true;
           velocityX = amplitudeX = 0;
           frameX = contentLeft;
-          if (!isTouchDevice) {
-            $document.on('mousemove', onMouseMoveX);
-            $document.on('mouseup',   onMouseUpX);
-          }
+          $document.on('mousemove', onMouseMoveX);
+          $document.on('mouseup',   onMouseUpX);
           if (isTouchDevice && !trackerTimeout) {
             trackerTimeout = $interval(track, 50);
           }
@@ -423,10 +421,8 @@ angular.module('ngScrollable', [])
         },
         onMouseUpX = function (e) {
           if (isXScrolling) {
-            if (!isTouchDevice) {
-              $document.off('mousemove', onMouseMoveX);
-              $document.off('mouseup',   onMouseUpX);
-            }
+            $document.off('mousemove', onMouseMoveX);
+            $document.off('mouseup',   onMouseUpX);
             isXScrolling = false;
             dom.el.removeClass('active');
             dragStartLeft = dragStartPageX = null;
@@ -447,16 +443,14 @@ angular.module('ngScrollable', [])
           isYScrolling = true;
           velocityY = amplitudeY = 0;
           frameY = contentTop;
-          if (!isTouchDevice) {
-            $document.on('mousemove',   onMouseMoveY);
-            $document.on('mouseup',     onMouseUpY);
-          }
+          $document.on('mousemove', onMouseMoveY);
+          $document.on('mouseup', onMouseUpY);
           if (isTouchDevice && !trackerTimeout) {
             trackerTimeout = $interval(track, 50);
           }
           dom.el.addClass('active');
           // stop also on touch devices
-          return stop(e, true);
+          return isTouchDevice || stop(e, true);
         },
         onMouseMoveY =  function (e) {
           if (isYScrolling) {
@@ -468,10 +462,8 @@ angular.module('ngScrollable', [])
         },
         onMouseUpY =  function (e) {
           if (isYScrolling) {
-            if (!isTouchDevice) {
-              $document.off('mousemove',   onMouseMoveY);
-              $document.off('mouseup',     onMouseUpY);
-            }
+            $document.off('mousemove', onMouseMoveY);
+            $document.off('mouseup', onMouseUpY);
             isYScrolling = false;
             dom.el.removeClass('active');
             dragStartTop = dragStartPageY = null;
@@ -560,6 +552,26 @@ angular.module('ngScrollable', [])
             e.preventDefault();
           }
         },
+        preventWheel = function (e) {
+          var over = e.explicitOriginalTarget || e.target;
+          if (!over) {
+            return false;
+          }
+
+          // default scroll inside editable containers (leave some slack space)
+          if (over.isContentEditable) {
+            return over.scrollHeight > over.clientHeight+over.clientTop+10;
+          }
+
+          // default scroll inside explicitly marked containers
+          while (over) {
+            if (over.className && over.className.indexOf('scrollable-ignore') > -1) {
+              return true;
+            }
+            over = over.parentNode;
+          }
+          return false;
+        },
         timeoutWheel = function () {
           var elapsed = Date.now() - wheelTime;
           if (elapsed < 500) {
@@ -578,10 +590,23 @@ angular.module('ngScrollable', [])
         handleWheel = function (e) {
           // with jquery use e.originalEvent.deltaX!!!
           e = e.originalEvent || e;
+
+          // prevent scrolling?
+          if (preventWheel(e)) {
+            return;
+          }
+
           var h = e.deltaMode ? lineHeight : 1,
               deltaX = e.deltaX * h * config.wheelSpeed,
               deltaY = e.deltaY * h * config.wheelSpeed,
               stopit = true;
+
+          // switch deltas when shift key is pressed
+          if (e.shiftKey) {
+            var sw = deltaY;
+            deltaY = deltaX;
+            deltaX = sw;
+          }
 
           // avoid flickering in Chrome: disabled animated translate
           wheelTime = Date.now();
@@ -659,17 +684,15 @@ angular.module('ngScrollable', [])
             dom.sliderX.on('click', stop);
             dom.barX.on('click',    clickBarX);
 
+            // slider drag
+            dom.sliderX.on('mousedown', onMouseDownX);
+
             if (isTouchDevice) {
 
               // content touch/drag
               dom.el.on('touchstart', onMouseDownX);
               dom.el.on('touchmove',  onMouseMoveX);
               dom.el.on('touchend',   onMouseUpX);
-
-            } else {
-
-              // slider drag
-              dom.sliderX.on('mousedown', onMouseDownX);
 
             }
           }
@@ -680,6 +703,8 @@ angular.module('ngScrollable', [])
             dom.sliderY.on('click', stop);
             dom.barY.on('click',    clickBarY);
 
+            // slider drag
+            dom.sliderY.on('mousedown', onMouseDownY);
 
             if (isTouchDevice) {
 
@@ -688,21 +713,14 @@ angular.module('ngScrollable', [])
               dom.el.on('touchmove',  onMouseMoveY);
               dom.el.on('touchend',   onMouseUpY);
 
-            } else {
-
-              // slider drag
-              dom.sliderY.on('mousedown', onMouseDownY);
-
             }
           }
 
           // mouse wheel
-          if (!isTouchDevice) {
-            dom.el.on('wheel',      handleWheel);
-          }
+          dom.el.on('wheel',      handleWheel);
 
           // keyboard
-          if (config.useKeyboard && !isTouchDevice) {
+          if (config.useKeyboard) {
             dom.el.on('mouseenter', hoverOn);
             dom.el.on('mouseleave', hoverOff);
             $document.on('keydown', handleKey);
@@ -735,28 +753,27 @@ angular.module('ngScrollable', [])
             dom.el.off('touchstart', onMouseDownY);
             dom.el.off('touchmove',  onMouseMoveY);
             dom.el.off('touchend',   onMouseUpY);
-          } else {
-
-            // slider drag
-            dom.sliderX.off('mousedown', onMouseDownX);
-            $document.off('mousemove',   onMouseMoveX);
-            $document.off('mouseup',     onMouseUpX);
-
-            dom.sliderY.off('mousedown', onMouseDownY);
-            $document.off('mousemove',   onMouseMoveY);
-            $document.off('mouseup',     onMouseUpY);
-
-            // keyboard
-            if (config.useKeyboard) {
-              // mouse hovering activates keyboard capture
-              dom.el.off('mouseenter', hoverOn);
-              dom.el.off('mouseleave', hoverOff);
-              $document.off('keydown', handleKey);
-            }
-
-            // mouse wheel
-            dom.el.off('wheel',      handleWheel);
           }
+
+          // slider drag
+          dom.sliderX.off('mousedown', onMouseDownX);
+          $document.off('mousemove',   onMouseMoveX);
+          $document.off('mouseup',     onMouseUpX);
+
+          dom.sliderY.off('mousedown', onMouseDownY);
+          $document.off('mousemove',   onMouseMoveY);
+          $document.off('mouseup',     onMouseUpY);
+
+          // keyboard
+          if (config.useKeyboard) {
+            // mouse hovering activates keyboard capture
+            dom.el.off('mouseenter', hoverOn);
+            dom.el.off('mouseleave', hoverOff);
+            $document.off('keydown', handleKey);
+          }
+
+          // mouse wheel
+          dom.el.off('wheel',      handleWheel);
 
         };
 
