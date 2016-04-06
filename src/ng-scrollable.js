@@ -565,7 +565,7 @@ angular.module('ngScrollable', [])
 
           // default scroll inside explicitly marked containers
           while (over) {
-            if (over.className && over.className.indexOf('scrollable-ignore') > -1) {
+            if (over.className && typeof(over.className) === 'string' && over.className.indexOf('scrollable-ignore') > -1) {
               return true;
             }
             over = over.parentNode;
