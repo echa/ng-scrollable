@@ -19,7 +19,7 @@ Features
 * It's soft scrolling using CSS3 translate3d, transition and requestAnimationFrame.
 * It's responsive, and friendly to your layout.
 * It's fully customizable. CSS, scrollbar position and behaviour.
-* It's small. Minified size is 9.8k JS + 1.4k CSS.
+* It's small. Minified size is 10k JS + 1.4k CSS.
 * It's pure Angular and Javascript. No jquery required.
 * It's MIT licensed.
 
@@ -29,7 +29,7 @@ How to Use
 ```html
 <head>
     <link href="ng-scrollable.min.css" rel="stylesheet">
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.3/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular.min.js"></script>
     <script src="ng-scrollable.min.js"></script>
     <script>var app = angular.module('app', ['ngScrollable']);</script>
 </head>
@@ -358,7 +358,7 @@ If you have any idea to improve this project or any problem using it, please cre
 License
 -------
 
-The MIT License (MIT) Copyright (c) 2014-2015 Alexander Eichhorn and [contributors](https://github.com/echa/ng-scrollable/graphs/contributors).
+The MIT License (MIT) Copyright (c) 2014-2016 Alexander Eichhorn and [contributors](https://github.com/echa/ng-scrollable/graphs/contributors).
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
