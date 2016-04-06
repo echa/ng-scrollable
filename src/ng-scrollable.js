@@ -654,6 +654,18 @@ angular.module('ngScrollable', [])
           }
         },
 
+        handleScroll = function (e) {
+          var deltaY = dom.el[0].scrollTop, deltaX = dom.el[0].scrollLeft;
+          if (deltaY) {
+            $$rAF(bind(null, scrollY, contentTop + deltaY + 2));
+          }
+          if (deltaX) {
+            $$rAF(bind(null, scrollX, contentLeft + deltaX + 2));
+          }
+          dom.el[0].scrollTop = dom.el[0].scrollLeft = 0;
+          stop(e, true);
+        },
+
         registerHandlers = function () {
 
           // use MutationObserver
@@ -719,6 +731,9 @@ angular.module('ngScrollable', [])
           // mouse wheel
           dom.el.on('wheel',      handleWheel);
 
+          // scroll event (form tabbing)
+          dom.el.on(    'scroll',     handleScroll );
+
           // keyboard
           if (config.useKeyboard) {
             dom.el.on('mouseenter', hoverOn);
@@ -774,6 +789,9 @@ angular.module('ngScrollable', [])
 
           // mouse wheel
           dom.el.off('wheel',      handleWheel);
+
+          // scroll event
+          dom.el.off( 'scroll',     handleScroll);
 
         };
 
