@@ -42,13 +42,13 @@ How to Use
 
 If the size of your scrollable container or content changes, call
 ```javascript
-$scope.$emit('content.changed');
+$scope.$broadcast('content.changed');
 ```
 
 from any of your content controllers inside ng-scrollable or
 
 ```javascript
-$scope.$broadcast('content.changed');
+$scope.$emit('content.changed');
 ```
 
 from outside the ng-scrollable scope.
