@@ -599,7 +599,7 @@ angular.module('ngScrollable', [])
           var h = e.deltaMode ? lineHeight : 1,
               deltaX = e.deltaX * h * config.wheelSpeed,
               deltaY = e.deltaY * h * config.wheelSpeed,
-              stopit = true;
+              stopit = isYActive || isXActive;
 
           // switch deltas when shift key is pressed
           if (e.shiftKey) {
