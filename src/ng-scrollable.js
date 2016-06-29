@@ -84,7 +84,7 @@ angular.module('ngScrollable', [])
       useBothWheelAxes: false,
       useKeyboard: true,
       preventKeyEvents: true,
-      preventWheelEvents: true,
+      preventWheelEvents: false,
       updateOnResize: true,
       kineticTau: 325,
       spyMargin: 1

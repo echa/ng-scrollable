@@ -178,8 +178,8 @@ When set to true (default), keyboard events for all keys supported by ng-scrolla
 **Default: true**
 
 ### preventWheelEvents
-When set to true (default), wheel events will never be forwarded to the parent DOM container (e.g. the document body). This prevents native body scroll when the content reaches the edge of the ng-scrollable container. If you set this value to false you get the native browser behaviour for `overflow:scroll` elements, i.e. the document body continues scrolling once the content reaches an edge.
-**Default: true**
+When set to true, wheel events will never be forwarded to the parent DOM container (e.g. the document body). This prevents native body scroll when the content reaches the edge of the ng-scrollable container. If you set this value to false (default) you get the native browser behaviour for `overflow:scroll` elements, i.e. the document body continues scrolling once the content reaches an edge.
+**Default: false**
 
 ### useObserver
 When set to true ngScrollable will observe DOM changes inside the scrollable content such as the addition or removal of DOM nodes and automatically trigger a refresh. Note that you still need to *manually* refresh after layout changes by sending a `content.changed` event. That is when adding or removing CSS classes or styles that influence the size of the scrollable container or any of its content.
