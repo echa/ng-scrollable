@@ -415,8 +415,7 @@ angular.module('ngScrollable', [])
             var deltaSlider = xpos(e) - dragStartPageX,
                 deltaContent = isTouchDevice ? -deltaSlider : parseInt(deltaSlider * (contentWidth - containerWidth) / (containerWidth - xSliderWidth), 10);
             $$rAF(bind(null, scrollX, dragStartLeft + deltaContent));
-            // stop also on touch devices
-            return stop(e, true);
+            return isTouchDevice || stop(e, true);
           }
         },
         onMouseUpX = function (e) {
