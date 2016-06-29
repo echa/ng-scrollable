@@ -84,6 +84,7 @@ angular.module('ngScrollable', [])
       useBothWheelAxes: false,
       useKeyboard: true,
       preventKeyEvents: true,
+      preventWheelEvents: true,
       updateOnResize: true,
       kineticTau: 325,
       spyMargin: 1
@@ -648,7 +649,7 @@ angular.module('ngScrollable', [])
           }
 
           // prevent default scrolling until edge is reached
-          if (stopit) {
+          if (stopit || config.preventWheelEvents) {
             stop(e, true);
           }
         },
@@ -728,10 +729,10 @@ angular.module('ngScrollable', [])
           }
 
           // mouse wheel
-          dom.el.on('wheel',      handleWheel);
+          dom.el.on('wheel', handleWheel);
 
           // scroll event (form tabbing)
-          dom.el.on(    'scroll',     handleScroll );
+          dom.el.on('scroll', handleScroll);
 
           // keyboard
           if (config.useKeyboard) {
@@ -787,10 +788,10 @@ angular.module('ngScrollable', [])
           }
 
           // mouse wheel
-          dom.el.off('wheel',      handleWheel);
+          dom.el.off('wheel', handleWheel);
 
           // scroll event
-          dom.el.off( 'scroll',     handleScroll);
+          dom.el.off( 'scroll', handleScroll);
 
         };
 
