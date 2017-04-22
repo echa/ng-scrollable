@@ -43,8 +43,6 @@
             transition: background-color .2s linear, opacity .2s linear, transform .2s ease-out;
 }
 
-/* disable transition to avoid flicker */
-/*
 .scrollable.active .scrollable-content,
 .scrollable.active .scrollable-slider {
     -webkit-transition: none;
@@ -53,7 +51,7 @@
          -o-transition: none;
             transition: none;
 }
-*/
+
 .scrollable .scrollable-bar {
     position: absolute;
     box-sizing: border-box;

@@ -54,10 +54,9 @@
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-md-6 col-md-offset-3">
+                    <div class="col-md-6">
                         <h3>Manual positioning</h3>
                         <h5>ng-scrollable with controls</h5>
-
                         <div style="margin-bottom: 10px;">
                             <div class="btn-group">
                                 <button class="btn btn-primary" ng-click="moveX(-50)">Left</button>
@@ -73,6 +72,19 @@
                             <img src="../assets/dumbo.jpg"/>
                         </div>
                         X {{posX}} Y {{posY}}
+                    </div>
+                    <div class="col-md-6">
+                        <h3>Manual positioning</h3>
+                        <div ng-scrollable class="scrollarea" style="margin-top: 110px; background-color:#ddd">
+                            <div style="margin: 0 20px">
+                                <form>
+                                    <div class="form-group" ng-repeat="i in [0,1,2,3,4,5,6,7,8,9,10,11,12]">
+                                    <input class="form-control" type="text" >
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        <i class="text-muted">Focus and tab through the inputs.</i>
                     </div>
                 </div>
             </div>

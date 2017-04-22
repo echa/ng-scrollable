@@ -437,8 +437,6 @@ angular.module('ngScrollable', [])
           if (isXScrolling) {
             $document.off('mousemove', onMouseMoveX);
             $document.off('mouseup',   onMouseUpX);
-            isXScrolling = false;
-            dom.el.removeClass('active');
             dragStartLeft = dragStartPageX = null;
           }
           // kinetic scroll
@@ -448,10 +446,18 @@ angular.module('ngScrollable', [])
             targetX = Math.round(contentLeft + amplitudeX);
             trackTime = Date.now();
             $$rAF(autoScrollX);
+          } else {
+            isXScrolling = false;
+            if (!isXScrolling && !isYScrolling) {
+              dom.el.removeClass('active');
+            }
           }
           return isTouchDevice || stop(e, true);
         },
         onMouseDownX = function (e) {
+          if (isTouchDevice && preventTouch(e)) {
+            return isTouchDevice;
+          }
           dragStartPageX = xpos(e);
           dragStartLeft = contentLeft;
           isXScrolling = true;
@@ -477,8 +483,6 @@ angular.module('ngScrollable', [])
           if (isYScrolling) {
             $document.off('mousemove', onMouseMoveY);
             $document.off('mouseup', onMouseUpY);
-            isYScrolling = false;
-            dom.el.removeClass('active');
             dragStartTop = dragStartPageY = null;
           }
           // kinetic scroll
@@ -488,10 +492,18 @@ angular.module('ngScrollable', [])
             targetY = Math.round(contentTop + amplitudeY);
             trackTime = Date.now();
             $$rAF(autoScrollY);
+          } else {
+            isYScrolling = false;
+            if (!isXScrolling && !isYScrolling) {
+              dom.el.removeClass('active');
+            }
           }
           return isTouchDevice || stop(e, true);
         },
         onMouseDownY = function (e) {
+          if (isTouchDevice && preventTouch(e)) {
+            return isTouchDevice;
+          }
           dragStartPageY = ypos(e);
           dragStartTop = contentTop;
           isYScrolling = true;
@@ -506,9 +518,6 @@ angular.module('ngScrollable', [])
           // stop also on touch devices
           return isTouchDevice || stop(e, true);
         },
-        // Get Offset without jquery
-        // element.prop('offsetTop')
-        // element[0].getBoundingClientRect().top
         clickBarX = function (e) {
           var halfOfScrollbarLength = parseInt(xSliderWidth / 2, 10),
               positionLeft = e.clientX - dom.barX[0].getBoundingClientRect().left - halfOfScrollbarLength,
@@ -579,6 +588,18 @@ angular.module('ngScrollable', [])
           if (config.preventKeyEvents) {
             e.preventDefault();
           }
+        },
+        preventTouch = function (e) {
+          var over = e.explicitOriginalTarget || e.target;
+          // default scroll inside explicit containers
+          while (over) {
+            if (over.className && typeof(over.className) === 'string' && over.className.indexOf('scrollable-ignore') > -1) {
+              // console.log('preventing touch');
+              return true;
+            }
+            over = over.parentNode;
+          }
+          return false;
         },
         preventWheel = function (e) {
           var over = e.explicitOriginalTarget || e.target;
@@ -683,15 +704,36 @@ angular.module('ngScrollable', [])
         },
 
         handleScroll = function (e) {
-          var deltaY = dom.el[0].scrollTop, deltaX = dom.el[0].scrollLeft;
-          if (deltaY) {
-            $$rAF(bind(null, scrollY, contentTop + deltaY + 2));
-          }
-          if (deltaX) {
-            $$rAF(bind(null, scrollX, contentLeft + deltaX + 2));
-          }
           dom.el[0].scrollTop = dom.el[0].scrollLeft = 0;
           stop(e, true);
+        },
+
+        handleFocus = function (e) {
+          var t = e.target;
+          var top = 0, left = 0, height = t.offsetHeight, width = t.offsetWidth;
+
+          // stop concurrent kinetic scroll
+          velocityY = amplitudeY = 0;
+
+          // determine the focused' element offset inside the scrollable area
+          while (t && !t.classList.contains('scrollable')) {
+            top += t.offsetTop;
+            left += t.offsetLeft;
+            t = t.offsetParent;
+          }
+
+          // if out of view, scroll into view
+          if (top < contentTop) {
+            $$rAF(bind(null, scrollY, top - 3));
+          } else if (top + height > contentTop + containerHeight) {
+            $$rAF(bind(null, scrollY, top - containerHeight + height + 3));
+          }
+
+          if (left < contentLeft) {
+            $$rAF(bind(null, scrollX, left - 3));
+          } else if (left + width > contentLeft + containerWidth) {
+            $$rAF(bind(null, scrollX, left - containerWidth + width + 3));
+          }
         },
 
         registerHandlers = function () {
@@ -761,6 +803,7 @@ angular.module('ngScrollable', [])
 
           // scroll event (form tabbing)
           dom.el.on('scroll', handleScroll);
+          dom.el[0].addEventListener('focus', handleFocus, true);
 
           // keyboard
           if (config.useKeyboard) {
@@ -815,12 +858,10 @@ angular.module('ngScrollable', [])
             $document.off('keydown', handleKey);
           }
 
-          // mouse wheel
+          // mouse wheel, scroll event and focus
           dom.el.off('wheel', handleWheel);
-
-          // scroll event
           dom.el.off( 'scroll', handleScroll);
-
+          dom.el[0].removeEventListener('focus', handleFocus, true);
         };
 
 
@@ -884,7 +925,6 @@ angular.module('ngScrollable', [])
           // defer to next digest
           $scope.$applyAsync(function () { scrollY(contentHeight); });
         });
-
 
         //may be broadcast from outside to scroll to custom content dimensions
         $scope.$on('scrollable.scroll.x', function(e, left) {
