@@ -18,7 +18,7 @@ Features
 * It supports mouse, wheel, keyboard and touch input with kinetic scrolling.
 * It's soft scrolling using CSS3 translate3d, transition and requestAnimationFrame.
 * It's responsive, and friendly to your layout.
-* It's fully customizable. CSS, scrollbar position and behaviour.
+* It's fully customizable. CSS, scrollbar position and behavior.
 * It's small. Minified size is 10k JS + 1.4k CSS.
 * It's pure Angular and Javascript. No jquery required.
 * It's MIT licensed.
@@ -114,9 +114,9 @@ Scrolls to the defined horizontal and vertical position. If either of the positi
 Emitted Events
 -------------------
 
-Angular events are notoriously inefficient for high-througput use cases like scrolling which is the reason why there is no event for every scroll position change. If you need such a feature, use scroll-spies instead.
+Angular events are notoriously inefficient for high-throughput use cases like scrolling which is the reason why there is no event for every scroll position change. If you need such a feature, use scroll-spies instead.
 
-ng-scrollable sends occational events when dimensions change or the content approaches one of the edges. You may use the optional parameter `events` (see below) to control the event propagation direction along the scope stack. Each event also carries an optional `id` parameter as its last argument which allows you to distinguish multiple ng-scrollable containers. You may define the id using a configuration parameter (see below).
+ng-scrollable sends occasional events when dimensions change or the content approaches one of the edges. You may use the optional parameter `events` (see below) to control the event propagation direction along the scope stack. Each event also carries an optional `id` parameter as its last argument which allows you to distinguish multiple ng-scrollable containers. You may define the id using a configuration parameter (see below).
 
 ```
 $scope.$on('scrollable.dimensions', function (e, containerWidth, containerHeight, contentWidth, contentHeight, id) {})
@@ -195,7 +195,7 @@ When set to true (default), keyboard events for all keys supported by ng-scrolla
 **Default: true**
 
 ### preventWheelEvents
-When set to true, wheel events will never be forwarded to the parent DOM container (e.g. the document body). This prevents native body scroll when the content reaches the edge of the ng-scrollable container. If you set this value to false (default) you get the native browser behaviour for `overflow:scroll` elements, i.e. the document body continues scrolling once the content reaches an edge.
+When set to true, wheel events will never be forwarded to the parent DOM container (e.g. the document body). This prevents native body scroll when the content reaches the edge of the ng-scrollable container. If you set this value to false (default) you get the native browser behavior for `overflow:scroll` elements, i.e. the document body continues scrolling once the content reaches an edge.
 **Default: false**
 
 ### useObserver
@@ -321,7 +321,7 @@ The scrollable container must have position relative or absolute for scrollbars 
 
 ### Scrollbar and Content Styling
 
-Scrollbars are placed absolute above the content and inside the scrollable container. Their CSS defines some transparency per default, but they don't *push*  content aside. If you want bars beeing displayed beside your content you need to specify explicit margins on your content yourself. To assist you, ng-scrollable inserts the following classes on the content wrapper element when a scrollbar is displayed:
+Scrollbars are placed absolute above the content and inside the scrollable container. Their CSS defines some transparency per default, but they don't *push* content aside. If you want the bars displayed outside your content you need to specify explicit content margins yourself. To assist you, ng-scrollable inserts the following classes on the content wrapper element when a scrollbar is displayed:
 
 ```
 scrollable-top
@@ -350,13 +350,13 @@ $scope.$emit('content.changed');
 
 ng-scrollable was tested to work with Angular 1.2.18 up to 1.4.3. However it should be backwards compatible down to Angular 1.1 since it does not use any special features introduced in later versions.
 
-This project only considers supporting recent browser versions to keep the source small and usable (hence, no IE 6/7/8 or other broken browser implementations). Since ng-scrollable doesn't use touch events yet, guestures on mobiles don't work.
+This project only considers supporting recent browser versions to keep the source small and usable (hence, no IE 6/7/8 or other broken browser implementations). Since ng-scrollable doesn't use touch events yet, gestures on mobiles don't work.
 
 I have verified this plugin works with the following Desktop browsers
 
-* Firefox 30 .. 42
-* Chrome 35 .. 44 and
-* Safari 6.1.4 .. 9.0.1 (OSX)
+* Firefox 30 .. 53
+* Chrome 35 .. 55 and
+* Safari 6.1.4 .. 9.1.3 (OSX)
 
 It may or may not work with other browsers. Let me know your experiences and send pull requests!
 
@@ -383,10 +383,5 @@ If you have any idea to improve this project or any problem using it, please cre
 License
 -------
 
-The MIT License (MIT) Copyright (c) 2014-2016 Alexander Eichhorn and [contributors](https://github.com/echa/ng-scrollable/graphs/contributors).
+(c) 2014-2017 Alexander Eichhorn and [contributors](https://github.com/echa/ng-scrollable/graphs/contributors). Licensed under [MIT](https://github.com/echa/ng-scrollable/blob/master/LICENSE) license.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
