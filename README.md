@@ -12,6 +12,22 @@ I hope you can also make use of it in your projects.
 
 Demo: https://echa.github.com/ng-scrollable/
 
+What if I need smooth scrolling on a touch device?
+--------------------------------------------------
+
+If you want to provide a very smooth UX for mobile Users you can use the native scrolling with just some lines of CSS.
+
+* The Element needs to have a height and a width
+  For Example:
+	width: 300px;
+  	height: 200px;
+
+* Then add:
+	overflow-y: scroll; /* has to be scroll, not auto */
+	-webkit-overflow-scrolling: touch;
+
+This will provide a native scroll behavior
+
 Features
 --------
 
@@ -321,7 +337,7 @@ The scrollable container must have position relative or absolute for scrollbars 
 
 ### Scrollbar and Content Styling
 
-Scrollbars are placed absolute above the content and inside the scrollable container. Their CSS defines some transparency per default, but they don't *push*  content aside. If you want bars beeing displayed beside your content you need to specify explicit margins on your content yourself. To assist you, ng-scrollable inserts the following classes on the content wrapper element when a scrollbar is displayed:
+Scrollbars are placed absolute above the content and inside the scrollable container. Their CSS defines some transparency per default, but they don't *push*  content aside. If you want bars being displayed beside your content you need to specify explicit margins on your content yourself. To assist you, ng-scrollable inserts the following classes on the content wrapper element when a scrollbar is displayed:
 
 ```
 scrollable-top
