@@ -62,7 +62,7 @@ from outside the ng-scrollable scope to let ng-scrollable reload DOM node refere
 Consumed Events
 ------------------
 
-ng-scrollable may be controlled by events sent to the directive's scope, either using `$scope.$broadcast` from the outside or `$scope.$emit` from the inside. The `scrollable.scroll.*` events move the content to absolute positions. They take no parameters.
+ng-scrollable may be controlled by events sent to the directive's scope, either using `$scope.$broadcast` from the outside or `$scope.$emit` from the inside. The `scrollable.scroll.*` events move the content either to an edge position (such events take no parameter) or to an absolute position.
 
 ```
 $scope.$broadcast('scrollable.scroll.left')
@@ -93,6 +93,22 @@ Re-evaluate content and container size and update scrollbars in the next digest 
 $scope.$broadcast('content.reload', noNotify)
 ```
 Reloads DOM references and re-registers event handlers before updating dimensions. If `noNotify` is True no event is sent when dimensions have changed.
+
+```
+$scope.$broadcast('scrollable.scroll.x', left)
+```
+Scrolls to the defined horizontal position. If that position is outside the content, the scroll ends at the edge.
+
+```
+$scope.$broadcast('scrollable.scroll.y', top)
+```
+Scrolls to the defined vertical position. If that position is outside the content, the scroll ends at the edge.
+
+```
+$scope.$broadcast('scrollable.scroll.xy', left, top)
+```
+Scrolls to the defined horizontal and vertical position. If either of the positions is outside the content, the scroll ens at the edge.
+
 
 
 Emitted Events
@@ -130,7 +146,6 @@ Sent when the left scroll-spy margin becomes visible inside the scrollable conta
 $scope.$on('scrollable.spyright', function (e, contentLeft, id) {})
 ```
 Sent when the right scroll-spy margin becomes visible inside the scrollable container window. This event is not sent again as long as the right margin remains visible. `contentLeft` is the current horizontal position of the content inside the scrollable container in CSS pixels, similar to the `spyX` value.
-
 
 
 Optional parameters

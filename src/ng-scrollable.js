@@ -887,7 +887,7 @@ angular.module('ngScrollable', [])
         //may be broadcast from outside to scroll to custom content dimensions
         $scope.$on('scrollable.scroll.x', function(e, left) {
           //defer to next digest
-          $scope.$applyAsync(function () { scrollY(left); });
+          $scope.$applyAsync(function () { scrollX(left); });
         });
 
         $scope.$on('scrollable.scroll.y', function(e, top) {
@@ -895,9 +895,9 @@ angular.module('ngScrollable', [])
           $scope.$applyAsync(function () { scrollY(top); });
         });
 
-        $scope.$on('scrollable.scroll.xy', function(e, position) {
+        $scope.$on('scrollable.scroll.xy', function(e, left, top) {
           //defer to next digest
-          $scope.$applyAsync(function () { scrollY(position.top); scrollX(position.left); });
+          $scope.$applyAsync(function () { scrollY(top); scrollX(left); });
         });
 
         // (un)register event handlers on scope destroy
