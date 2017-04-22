@@ -31,72 +31,74 @@
 angular.module('ngScrollable', [])
 
 .directive('ngScrollable', ['$injector', function ($injector) {
-    'use strict';
+  'use strict';
 
-    // dependencies
-    var $rootScope       = $injector.get('$rootScope');
-    var $document        = $injector.get('$document');
-    var $interval        = $injector.get('$interval');
-    var $timeout         = $injector.get('$timeout');
-    var $window          = $injector.get('$window');
-    var $parse           = $injector.get('$parse');
-    var bind             = angular.bind;
-    var extend           = angular.extend;
-    var element          = angular.element;
-    var isDefined        = angular.isDefined;
-    var isTouchDevice    = typeof $window.ontouchstart !== 'undefined';
-    var xform            = 'transform';
+  // dependencies
+  var $rootScope       = $injector.get('$rootScope');
+  var $document        = $injector.get('$document');
+  var $interval        = $injector.get('$interval');
+  var $timeout         = $injector.get('$timeout');
+  var $window          = $injector.get('$window');
+  var $parse           = $injector.get('$parse');
+  var bind             = angular.bind;
+  var extend           = angular.extend;
+  var element          = angular.element;
+  var isDefined        = angular.isDefined;
+  var isTouchDevice    = typeof $window.ontouchstart !== 'undefined';
+  var xform            = 'transform';
 
-    // use requestAnimationFrame for kinetic scrolling
-    var $$rAF = $window.requestAnimationFrame || $window.webkitRequestAnimationFrame;
+  // use requestAnimationFrame for kinetic scrolling
+  var $$rAF = $window.requestAnimationFrame || $window.webkitRequestAnimationFrame;
 
-    // use MutationObserver to auto-refresh on DOM changes
-    // https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver
-    var MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
+  // use MutationObserver to auto-refresh on DOM changes
+  // https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver
+  var MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
 
-    // Angular used to contain an internal service that is using a task queue
-    // in 1.4.x which makes it incompatible with smooth scrolling
-    //
-    // var $$rAF            = $injector.get('$$rAF');
+  // Angular used to contain an internal service that is using a task queue
+  // in 1.4.x which makes it incompatible with smooth scrolling
+  //
+  // var $$rAF            = $injector.get('$$rAF');
 
-    // find the correct CSS transform feature class name
-    ['webkit', 'moz', 'o', 'ms'].every(function (prefix) {
-      var e = prefix + 'Transform';
-      var body = $document.find('body').eq(0);
-      if (typeof body[0].style[e] !== 'undefined') {
-        xform = e;
-        return false;
-      }
-      return true;
-    });
+  // find the correct CSS transform feature class name
+  ['webkit', 'moz', 'o', 'ms'].every(function (prefix) {
+    var e = prefix + 'Transform';
+    var body = $document.find('body').eq(0);
+    if (typeof body[0].style[e] !== 'undefined') {
+      xform = e;
+      return false;
+    }
+    return true;
+  });
 
-    var defaultOpts = {
-      id: 0,
-      events: 'broadcast',
-      scrollX: 'bottom',
-      scrollY: 'right',
-      scrollXSlackSpace: 0,
-      scrollYSlackSpace: 0,
-      scrollXAlways: false,
-      scrollYAlways: false,
-      usePadding: false,
-      useObserver: true,
-      wheelSpeed: 1,
-      minSliderLength: 10,
-      useBothWheelAxes: false,
-      useKeyboard: true,
-      preventKeyEvents: true,
-      preventWheelEvents: false,
-      updateOnResize: true,
-      kineticTau: 325,
-      spyMargin: 1
-    };
+  var defaultOpts = {
+    id: 0,
+    events: 'broadcast',
+    scrollX: 'bottom',
+    scrollY: 'right',
+    scrollXSlackSpace: 0,
+    scrollYSlackSpace: 0,
+    scrollXAlways: false,
+    scrollYAlways: false,
+    usePadding: false,
+    useObserver: true,
+    wheelSpeed: 1,
+    minSliderLength: 10,
+    useBothWheelAxes: false,
+    useKeyboard: true,
+    preventKeyEvents: true,
+    preventWheelEvents: false,
+    updateOnResize: true,
+    kineticTau: 325,
+    spyMargin: 1
+  };
 
-    return {
-      restrict: 'A',
-      transclude: true,
-      template: "<div class=\"scrollable\"><div class=\"scrollable-content\" ng-transclude></div><div class='scrollable-bar scrollable-bar-x'><div class='scrollable-slider'></div></div><div class='scrollable-bar scrollable-bar-y'><div class='scrollable-slider'></div></div></div>",
-      link: function ($scope, elem, attrs) {
+  return {
+    restrict: 'A',
+    transclude: true,
+    template: "<div class=\"scrollable\"><div class=\"scrollable-content\" ng-transclude></div><div class='scrollable-bar scrollable-bar-x'><div class='scrollable-slider'></div></div><div class='scrollable-bar scrollable-bar-y'><div class='scrollable-slider'></div></div></div>",
+    link: {
+      post: angular.noop,
+      pre: function ($scope, elem, attrs) {
         var
         config = extend({}, defaultOpts, $scope.$eval(attrs.ngScrollable)),
         el = element(elem.children()[0]),
@@ -933,6 +935,6 @@ angular.module('ngScrollable', [])
           }
         });
       }
-    };
-  }
-]);
+    }
+  };
+}]);
