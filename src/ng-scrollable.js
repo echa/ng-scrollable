@@ -2,9 +2,9 @@
  * ng-scrollable.js
  * http://github.com/echa/ng-scrollable
  * =========================================================
- * Copyright 2014-2015 Alexander Eichhorn
+ * Copyright 2014-2017 Alexander Eichhorn
  *
- * The MIT License (MIT) Copyright (c) 2014-2015 Alexander Eichhorn.
+ * The MIT License (MIT) Copyright (c) 2014-2017 Alexander Eichhorn.
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,6 +34,7 @@ angular.module('ngScrollable', [])
     'use strict';
 
     // dependencies
+    var $rootScope       = $injector.get('$rootScope');
     var $document        = $injector.get('$document');
     var $interval        = $injector.get('$interval');
     var $timeout         = $injector.get('$timeout');
@@ -71,6 +72,7 @@ angular.module('ngScrollable', [])
 
     var defaultOpts = {
       id: 0,
+      events: 'broadcast',
       scrollX: 'bottom',
       scrollY: 'right',
       scrollXSlackSpace: 0,
@@ -151,6 +153,23 @@ angular.module('ngScrollable', [])
           var phase = $scope.$root ? $scope.$root.$$phase : $scope.$$phase;
           if (phase !== '$apply' && phase !== '$digest') {
             $scope.$digest();
+          }
+        },
+        signal = function () {
+          switch (config.events) {
+          case 'broadcast':
+            $scope.$broadcast.apply($scope, arguments);
+            break;
+          case 'emit':
+            $scope.$emit.apply($scope, arguments);
+            break;
+          case 'both':
+            $scope.$broadcast.apply($scope, arguments);
+            $scope.$emit.apply($scope, arguments);
+            break;
+          case 'rootScope':
+            $rootScope.$emit.apply($scope, arguments);
+            break;
           }
         },
         updateSliderX = function () {
@@ -253,6 +272,13 @@ angular.module('ngScrollable', [])
           // clamp to 0 .. content{Height|Width} - container{Height|Width}
           contentTop = clamp(top, 0, contentHeight - containerHeight);
           contentLeft = clamp(left, 0, contentWidth - containerWidth);
+
+          // skip updates and events when nothing changed
+          if (oldTop == contentTop && oldLeft == contentLeft) {
+            return
+          }
+
+          // update CSS
           dom.content[0].style[xform] = 'translate3d(' + toPix(-contentLeft) + ',' + toPix(-contentTop) + ',0)';
 
           // update spies async to avoid overwriting one spy while a $watch is pending
@@ -260,16 +286,16 @@ angular.module('ngScrollable', [])
 
           // fire scrollSpy events only when entering a margin
           if (contentTop < containerHeight * config.spyMargin && oldTop >= containerHeight * config.spyMargin) {
-            $scope.$broadcast('scrollable.spytop', contentTop, config.id);
+            signal('scrollable.spytop', contentTop, config.id);
           }
           if (contentTop > contentHeight - containerHeight * (config.spyMargin + 1) && oldTop <= contentHeight - containerHeight * (config.spyMargin + 1)) {
-            $scope.$broadcast('scrollable.spybottom', contentTop, config.id);
+            signal('scrollable.spybottom', contentTop, config.id);
           }
           if (contentLeft < containerWidth * config.spyMargin && oldLeft >= containerWidth * config.spyMargin) {
-            $scope.$broadcast('scrollable.spyleft', contentLeft, config.id);
+            signal('scrollable.spyleft', contentLeft, config.id);
           }
           if (contentLeft > contentWidth - containerWidth * (config.spyMargin + 1) && oldLeft <= contentWidth - containerWidth * (config.spyMargin + 1)) {
-            $scope.$broadcast('scrollable.spyright', contentLeft, config.id);
+            signal('scrollable.spyright', contentLeft, config.id);
           }
 
         },
@@ -856,19 +882,19 @@ angular.module('ngScrollable', [])
           // defer to next digest
           $scope.$applyAsync(function () { scrollY(contentHeight); });
         });
-        
-        
-        //may be broadcast from outside to scroll to custom content dimensions  
+
+
+        //may be broadcast from outside to scroll to custom content dimensions
         $scope.$on('scrollable.scroll.x', function(e, left) {
           //defer to next digest
           $scope.$applyAsync(function () { scrollY(left); });
         });
-        
+
         $scope.$on('scrollable.scroll.y', function(e, top) {
           //defer to next digest
           $scope.$applyAsync(function () { scrollY(top); });
         });
-        
+
         $scope.$on('scrollable.scroll.xy', function(e, position) {
           //defer to next digest
           $scope.$applyAsync(function () { scrollY(position.top); scrollX(position.left); });

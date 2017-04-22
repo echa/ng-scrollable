@@ -20,4 +20,14 @@ app.controller('Demo', function ($scope) {
 		$scope.posX = 600;
 		$scope.posY = 410;
 	};
+
+	// listen to events and print them to console
+	function printEvent(e, pos, id) {
+		console.log('id:', id, 'event:', e.name, 'pos:', pos);
+	}
+
+	$scope.$on('scrollable.spytop', printEvent);
+	$scope.$on('scrollable.spybottom', printEvent);
+	$scope.$on('scrollable.spyleft', printEvent);
+	$scope.$on('scrollable.spyright', printEvent);
 });

@@ -98,36 +98,38 @@ Reloads DOM references and re-registers event handlers before updating dimension
 Emitted Events
 -------------------
 
-ng-scrollable broadcasts changes in dimensions down the scope stack using `$scope.$broadcast` so inner content controllers can react appropriatly.
+Angular events are notoriously inefficient for high-througput use cases like scrolling which is the reason why there is no event for every scroll position change. If you need such a feature, use scroll-spies instead.
+
+ng-scrollable sends occational events when dimensions change or the content approaches one of the edges. You may use the optional parameter `events` (see below) to control the event propagation direction along the scope stack. Each event also carries an optional `id` parameter as its last argument which allows you to distinguish multiple ng-scrollable containers. You may define the id using a configuration parameter (see below).
 
 ```
 $scope.$on('scrollable.dimensions', function (e, containerWidth, containerHeight, contentWidth, contentHeight, id) {})
 ```
-Sent on each detected change to the container or content dimensions. The first four parameters are the scrollable dimensions in CSS pixel units. `Id` may be defined using a configuration parameter (see below) to identify the scrollable container sending the event.
+Sent on each detected change to the container or content dimensions. The first four parameters are the scrollable dimensions in CSS pixel units. The last parameter is the optional id value.
 
-From v0.2.3 onwards, ng-scrollable broadcasts **scroll spy events** when the scroll position approaches one of the content's edges. The proximity may be controlled with the configuration parameter `spyMargin`, which defines a virtual margin overlapping the content edges. Once the virtual margin becomes visible inside the scrollable container, an event is triggered. The margin's size defaults to **one page**, i.e. one container width or height around the edge. Events are sent only once when entering a margin and again after leaving and re-entering the margin.
+ng-scrollable sends **scroll spy events** when the scroll position approaches one of the content's edges. The proximity to an edge may be controlled with the configuration parameter `spyMargin`, which defines a virtual margin at content edges. Once the virtual margin becomes visible inside the scrollable container, an event is triggered. The margin's size defaults to **one page**, i.e. one container width or height around the edge. Events are sent only once when entering a margin and again after leaving and re-entering the margin.
 
 Note that with the default setting of one page no event will be sent if the content is smaller than 2x the container size in either dimension. If desired you can set sypMargin to values < 1.
 
 ```
 $scope.$on('scrollable.spytop', function (e, contentTop, id) {})
 ```
-Sent when the top scroll-spy margin becomes visible inside the scrollable container window. This event is not sent again as long as the top margin remains visible. `contentTop` is the current vertical position of the content inside the scrollable container in CSS pixels. `Id` may be defined using a configuration parameter (see below) to identify the scrollable container sending the event.
+Sent when the top scroll-spy margin becomes visible inside the scrollable container window. This event is not sent again as long as the top margin remains visible. `contentTop` is the current vertical position of the content inside the scrollable container in CSS pixels.
 
 ```
 $scope.$on('scrollable.spybottom', function (e, contentTop, id) {})
 ```
-Sent when the bottom scroll-spy margin becomes visible inside the scrollable container window. This event is not sent again as long as the bottom margin remains visible. `contentTop` is the current vertical position of the content inside the scrollable container in CSS pixels, similar to the `spyY` value. `Id` may be defined using a configuration parameter (see below)  to identify the scrollable container sending the event.
+Sent when the bottom scroll-spy margin becomes visible inside the scrollable container window. This event is not sent again as long as the bottom margin remains visible. `contentTop` is the current vertical position of the content inside the scrollable container in CSS pixels, similar to the `spyY` value.
 
 ```
 $scope.$on('scrollable.spyleft', function (e, contentLeft, id) {})
 ```
-Sent when the left scroll-spy margin becomes visible inside the scrollable container window. This event is not sent again as long as the left margin remains visible. `contentLeft` is the current horizontal position of the content inside the scrollable container in CSS pixels. `Id` may be defined using a configuration parameter (see below)  to identify the scrollable container sending the event.
+Sent when the left scroll-spy margin becomes visible inside the scrollable container window. This event is not sent again as long as the left margin remains visible. `contentLeft` is the current horizontal position of the content inside the scrollable container in CSS pixels.
 
 ```
 $scope.$on('scrollable.spyright', function (e, contentLeft, id) {})
 ```
-Sent when the right scroll-spy margin becomes visible inside the scrollable container window. This event is not sent again as long as the right margin remains visible. `contentLeft` is the current horizontal position of the content inside the scrollable container in CSS pixels, similar to the `spyX` value. `Id` may be defined using a configuration parameter (see below)  to identify the scrollable container sending the event.
+Sent when the right scroll-spy margin becomes visible inside the scrollable container window. This event is not sent again as long as the right margin remains visible. `contentLeft` is the current horizontal position of the content inside the scrollable container in CSS pixels, similar to the `spyX` value.
 
 
 
@@ -204,6 +206,10 @@ Changes the way ng-scrollable determines content dimensions. When True, ng-scrol
 ### spyMargin
 Unitless factor that lets you define the size of the scroll-spy margin relative to the scrollable container's width and height. The margin (virtually) overlaps the content on all edges and triggers an event (see above) when it becomes visible. A value of `0` disables this feature.
 **Default: 1.0**
+
+### events
+Controls how Angular events are sent by ng-scrollable. Supported values are `broadcast`, `emit`, `both` and `rootScope`. **broadcast** sends events to child-scopes inside the scrollable container while **emit** sends them upwards the scope stack to parent containers. **both** will send events in both ways, first broadcasting, then emitting each event. **rootScope** emits events on the `$rootScope` which is the most efficient way of propagating events in Angular, since they do not traverse the scope tree. Setting the parameter to anything else effectively disables events.
+**Default: broadcast**
 
 
 Optional attributes

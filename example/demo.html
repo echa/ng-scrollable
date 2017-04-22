@@ -38,7 +38,7 @@
                     <div class="col-md-6">
                         <h5>ng-scrollable with bars on both axes</h5>
                         <p><code>{scrollX:'bottom',scrollY:'right'}</code>(default)</p>
-                        <div ng-scrollable class="scrollarea">
+                        <div ng-scrollable="{events:'emit',id:1}" class="scrollarea">
                             <div class="demo"></div>
                         </div>
                         <i class="text-muted">Use mouse or keyboard to scroll.</i>
@@ -46,7 +46,7 @@
                     <div class="col-md-6">
                         <h5>ng-scrollable with left vertical bar only</h5>
                         <p><code>{scrollX:'none',scrollY:'left'}</code></p>
-                        <div ng-scrollable="{scrollX:'none',scrollY:'left'}" class="scrollarea">
+                        <div ng-scrollable="{scrollX:'none',scrollY:'left',events:'emit',id:2}" class="scrollarea">
                             <img src="../assets/dumbo.jpg"/>
                         </div>
                         <i class="text-muted">Note how keyboard <kbd>Home</kbd>/<kbd>End</kbd> keys change.</i>
@@ -68,7 +68,7 @@
                             </div>
                             <button class="btn btn-primary" ng-click="center()">Scroll to center</button>
                         </div>
-                        <div ng-scrollable="{scrollX:'bottom',scrollY:'right'}" class="scrollarea" spy-x="posX" spy-y="posY">
+                        <div ng-scrollable="{scrollX:'bottom',scrollY:'right',events:'emit',id:3}" class="scrollarea" spy-x="posX" spy-y="posY">
                             <img src="../assets/dumbo.jpg"/>
                         </div>
                         X {{posX}} Y {{posY}}
