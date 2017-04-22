@@ -856,6 +856,23 @@ angular.module('ngScrollable', [])
           // defer to next digest
           $scope.$applyAsync(function () { scrollY(contentHeight); });
         });
+        
+        
+        //may be broadcast from outside to scroll to custom content dimensions  
+        $scope.$on('scrollable.scroll.x', function(e, left) {
+          //defer to next digest
+          $scope.$applyAsync(function () { scrollY(left); });
+        });
+        
+        $scope.$on('scrollable.scroll.y', function(e, top) {
+          //defer to next digest
+          $scope.$applyAsync(function () { scrollY(top); });
+        });
+        
+        $scope.$on('scrollable.scroll.xy', function(e, position) {
+          //defer to next digest
+          $scope.$applyAsync(function () { scrollY(position.top); scrollX(position.left); });
+        });
 
         // (un)register event handlers on scope destroy
         $scope.$on('$destroy', function () {
