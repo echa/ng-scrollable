@@ -12,10 +12,6 @@ app.controller('Demo', function ($scope) {
 	$scope.moveY = function (pixels) {
 		$scope.posY = $scope.posY + pixels;
 	};
-	$scope.$evalAsync(function () {
-		$scope.$broadcast('content.changed', 1000);
-	});
-
 	$scope.center = function () {
 		$scope.posX = 600;
 		$scope.posY = 410;
