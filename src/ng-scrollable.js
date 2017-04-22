@@ -257,19 +257,19 @@ angular.module('ngScrollable', [])
 
           // update spies async to avoid overwriting one spy while a $watch is pending
           $scope.$applyAsync(updateSpies);
-
+            
           // fire scrollSpy events only when entering a margin
           if (contentTop < containerHeight * config.spyMargin && oldTop >= containerHeight * config.spyMargin) {
-            $scope.$broadcast('scrollable.spytop', contentTop, config.id);
+            $scope.$emit('scrollable.spytop', contentTop, config.id);
           }
           if (contentTop > contentHeight - containerHeight * (config.spyMargin + 1) && oldTop <= contentHeight - containerHeight * (config.spyMargin + 1)) {
-            $scope.$broadcast('scrollable.spybottom', contentTop, config.id);
+            $scope.$emit('scrollable.spybottom', contentTop, config.id);
           }
           if (contentLeft < containerWidth * config.spyMargin && oldLeft >= containerWidth * config.spyMargin) {
-            $scope.$broadcast('scrollable.spyleft', contentLeft, config.id);
+            $scope.$emit('scrollable.spyleft', contentLeft, config.id);
           }
           if (contentLeft > contentWidth - containerWidth * (config.spyMargin + 1) && oldLeft <= contentWidth - containerWidth * (config.spyMargin + 1)) {
-            $scope.$broadcast('scrollable.spyright', contentLeft, config.id);
+            $scope.$emit('scrollable.spyright', contentLeft, config.id);
           }
 
         },
