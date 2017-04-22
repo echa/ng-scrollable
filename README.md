@@ -29,7 +29,7 @@ How to Use
 ```html
 <head>
     <link href="ng-scrollable.min.css" rel="stylesheet">
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular.min.js"></script>
     <script src="ng-scrollable.min.js"></script>
     <script>var app = angular.module('app', ['ngScrollable']);</script>
 </head>
