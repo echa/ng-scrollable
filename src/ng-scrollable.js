@@ -274,8 +274,8 @@ angular.module('ngScrollable', [])
           contentLeft = clamp(left, 0, contentWidth - containerWidth);
 
           // skip updates and events when nothing changed
-          if (oldTop == contentTop && oldLeft == contentLeft) {
-            return
+          if (oldTop === contentTop && oldLeft === contentLeft) {
+            return;
           }
 
           // update CSS
@@ -422,20 +422,6 @@ angular.module('ngScrollable', [])
             }
           }
         },
-        onMouseDownX = function (e) {
-          dragStartPageX = xpos(e);
-          dragStartLeft = contentLeft;
-          isXScrolling = true;
-          velocityX = amplitudeX = 0;
-          frameX = contentLeft;
-          $document.on('mousemove', onMouseMoveX);
-          $document.on('mouseup',   onMouseUpX);
-          if (isTouchDevice && !trackerTimeout) {
-            trackerTimeout = $interval(track, 50);
-          }
-          dom.el.addClass('active');
-          return isTouchDevice || stop(e, true);
-        },
         onMouseMoveX = function (e) {
           if (isXScrolling) {
             // scale slider move to content width
@@ -463,19 +449,18 @@ angular.module('ngScrollable', [])
           }
           return isTouchDevice || stop(e, true);
         },
-        onMouseDownY = function (e) {
-          dragStartPageY = ypos(e);
-          dragStartTop = contentTop;
-          isYScrolling = true;
-          velocityY = amplitudeY = 0;
-          frameY = contentTop;
-          $document.on('mousemove', onMouseMoveY);
-          $document.on('mouseup', onMouseUpY);
+        onMouseDownX = function (e) {
+          dragStartPageX = xpos(e);
+          dragStartLeft = contentLeft;
+          isXScrolling = true;
+          velocityX = amplitudeX = 0;
+          frameX = contentLeft;
+          $document.on('mousemove', onMouseMoveX);
+          $document.on('mouseup',   onMouseUpX);
           if (isTouchDevice && !trackerTimeout) {
             trackerTimeout = $interval(track, 50);
           }
           dom.el.addClass('active');
-          // stop also on touch devices
           return isTouchDevice || stop(e, true);
         },
         onMouseMoveY =  function (e) {
@@ -502,6 +487,21 @@ angular.module('ngScrollable', [])
             trackTime = Date.now();
             $$rAF(autoScrollY);
           }
+          return isTouchDevice || stop(e, true);
+        },
+        onMouseDownY = function (e) {
+          dragStartPageY = ypos(e);
+          dragStartTop = contentTop;
+          isYScrolling = true;
+          velocityY = amplitudeY = 0;
+          frameY = contentTop;
+          $document.on('mousemove', onMouseMoveY);
+          $document.on('mouseup', onMouseUpY);
+          if (isTouchDevice && !trackerTimeout) {
+            trackerTimeout = $interval(track, 50);
+          }
+          dom.el.addClass('active');
+          // stop also on touch devices
           return isTouchDevice || stop(e, true);
         },
         // Get Offset without jquery
