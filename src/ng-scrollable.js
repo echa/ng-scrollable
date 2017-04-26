@@ -267,7 +267,7 @@ angular.module('ngScrollable', [])
             safeDigest();
           }
         },
-        scrollTo = function (left, top) {
+        scrollTo = function (left, top, isolatedElement) {
           var oldTop = contentTop;
           var oldLeft = contentLeft;
 
@@ -279,10 +279,14 @@ angular.module('ngScrollable', [])
           if (oldTop === contentTop && oldLeft === contentLeft) {
             return;
           }
-
+          
           // update CSS
-          dom.content[0].style[xform] = 'translate3d(' + toPix(-contentLeft) + ',' + toPix(-contentTop) + ',0)';
-
+          if(angular.isElement(isolatedElement)){
+            isolatedElement[0].style[xform] = 'translate3d(' + toPix(-contentLeft) + ',' + toPix(-contentTop) + ',0)';
+          } else {
+            dom.content[0].style[xform] = 'translate3d(' + toPix(-contentLeft) + ',' + toPix(-contentTop) + ',0)';
+          }
+          
           // update spies async to avoid overwriting one spy while a $watch is pending
           $scope.$applyAsync(updateSpies);
 
@@ -301,14 +305,14 @@ angular.module('ngScrollable', [])
           }
 
         },
-        scrollX = function (pos) {
+        scrollX = function (pos, isolatedElement) {
           if (!isXActive) { return; }
-          scrollTo(pos, contentTop);
+          scrollTo(pos, contentTop, isolatedElement);
           updateSliderX();
         },
-        scrollY = function (pos) {
+        scrollY = function (pos, isolatedElement) {
           if (!isYActive) { return; }
-          scrollTo(contentLeft, pos);
+          scrollTo(contentLeft, pos, isolatedElement);
           updateSliderY();
         },
         refresh = function (event, noNotify) {
@@ -906,40 +910,40 @@ angular.module('ngScrollable', [])
 
 
         // may be broadcast from outside to scroll to content edges
-        $scope.$on('scrollable.scroll.left', function () {
+        $scope.$on('scrollable.scroll.left', function (isolatedElement) {
           // defer to next digest
-          $scope.$applyAsync(function () { scrollX(0); });
+          $scope.$applyAsync(function () { scrollX(0, isolatedElement); });
         });
 
-        $scope.$on('scrollable.scroll.right', function () {
+        $scope.$on('scrollable.scroll.right', function (isolatedElement) {
           // defer to next digest
-          $scope.$applyAsync(function () { scrollX(contentWidth); });
+          $scope.$applyAsync(function () { scrollX(contentWidth, isolatedElement); });
         });
 
-        $scope.$on('scrollable.scroll.top', function () {
+        $scope.$on('scrollable.scroll.top', function (isolatedElement) {
           // defer to next digest
-          $scope.$applyAsync(function () { scrollY(0); });
+          $scope.$applyAsync(function () { scrollY(0, isolatedElement); });
         });
 
-        $scope.$on('scrollable.scroll.bottom', function () {
+        $scope.$on('scrollable.scroll.bottom', function (isolatedElement) {
           // defer to next digest
-          $scope.$applyAsync(function () { scrollY(contentHeight); });
+          $scope.$applyAsync(function () { scrollY(contentHeight, isolatedElement); });
         });
 
         //may be broadcast from outside to scroll to custom content dimensions
-        $scope.$on('scrollable.scroll.x', function(e, left) {
+        $scope.$on('scrollable.scroll.x', function(e, left, isolatedElement) {
           //defer to next digest
-          $scope.$applyAsync(function () { scrollX(left); });
+          $scope.$applyAsync(function () { scrollX(left, isolatedElement); });
         });
 
-        $scope.$on('scrollable.scroll.y', function(e, top) {
+        $scope.$on('scrollable.scroll.y', function(e, top, isolatedElement) {
           //defer to next digest
-          $scope.$applyAsync(function () { scrollY(top); });
+          $scope.$applyAsync(function () { scrollY(top, isolatedElement); });
         });
 
-        $scope.$on('scrollable.scroll.xy', function(e, left, top) {
+        $scope.$on('scrollable.scroll.xy', function(e, left, top, isolatedElement) {
           //defer to next digest
-          $scope.$applyAsync(function () { scrollY(top); scrollX(left); });
+          $scope.$applyAsync(function () { scrollY(top, isolatedElement); scrollX(left, isolatedElement); });
         });
 
         // (un)register event handlers on scope destroy
