@@ -2,9 +2,9 @@
  * ng-scrollable.js
  * http://github.com/echa/ng-scrollable
  * =========================================================
- * Copyright 2014-2017 Alexander Eichhorn
+ * Copyright 2014-2015 Alexander Eichhorn
  *
- * The MIT License (MIT) Copyright (c) 2014-2017 Alexander Eichhorn.
+ * The MIT License (MIT) Copyright (c) 2014-2015 Alexander Eichhorn.
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,74 +31,71 @@
 angular.module('ngScrollable', [])
 
 .directive('ngScrollable', ['$injector', function ($injector) {
-  'use strict';
+    'use strict';
 
-  // dependencies
-  var $rootScope       = $injector.get('$rootScope');
-  var $document        = $injector.get('$document');
-  var $interval        = $injector.get('$interval');
-  var $timeout         = $injector.get('$timeout');
-  var $window          = $injector.get('$window');
-  var $parse           = $injector.get('$parse');
-  var bind             = angular.bind;
-  var extend           = angular.extend;
-  var element          = angular.element;
-  var isDefined        = angular.isDefined;
-  var isTouchDevice    = typeof $window.ontouchstart !== 'undefined';
-  var xform            = 'transform';
+    // dependencies
+    var $document        = $injector.get('$document');
+    var $interval        = $injector.get('$interval');
+    var $timeout         = $injector.get('$timeout');
+    var $window          = $injector.get('$window');
+    var $parse           = $injector.get('$parse');
+    var bind             = angular.bind;
+    var extend           = angular.extend;
+    var element          = angular.element;
+    var isDefined        = angular.isDefined;
+    var isTouchDevice    = typeof $window.ontouchstart !== 'undefined';
+    //var isTouchDevice = window.matchMedia('(pointer: coarse)').matches
+    var xform            = 'transform';
 
-  // use requestAnimationFrame for kinetic scrolling
-  var $$rAF = $window.requestAnimationFrame || $window.webkitRequestAnimationFrame;
+    // use requestAnimationFrame for kinetic scrolling
+    var $$rAF = $window.requestAnimationFrame || $window.webkitRequestAnimationFrame;
 
-  // use MutationObserver to auto-refresh on DOM changes
-  // https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver
-  var MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
+    // use MutationObserver to auto-refresh on DOM changes
+    // https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver
+    var MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
 
-  // Angular used to contain an internal service that is using a task queue
-  // in 1.4.x which makes it incompatible with smooth scrolling
-  //
-  // var $$rAF            = $injector.get('$$rAF');
+    // Angular used to contain an internal service that is using a task queue
+    // in 1.4.x which makes it incompatible with smooth scrolling
+    //
+    // var $$rAF            = $injector.get('$$rAF');
 
-  // find the correct CSS transform feature class name
-  ['webkit', 'moz', 'o', 'ms'].every(function (prefix) {
-    var e = prefix + 'Transform';
-    var body = $document.find('body').eq(0);
-    if (typeof body[0].style[e] !== 'undefined') {
-      xform = e;
-      return false;
-    }
-    return true;
-  });
+    // find the correct CSS transform feature class name
+    ['webkit', 'moz', 'o', 'ms'].every(function (prefix) {
+      var e = prefix + 'Transform';
+      var body = $document.find('body').eq(0);
+      if (typeof body[0].style[e] !== 'undefined') {
+        xform = e;
+        return false;
+      }
+      return true;
+    });
 
-  var defaultOpts = {
-    id: 0,
-    events: 'broadcast',
-    scrollX: 'bottom',
-    scrollY: 'right',
-    scrollXSlackSpace: 0,
-    scrollYSlackSpace: 0,
-    scrollXAlways: false,
-    scrollYAlways: false,
-    usePadding: false,
-    useObserver: true,
-    wheelSpeed: 1,
-    minSliderLength: 10,
-    useBothWheelAxes: false,
-    useKeyboard: true,
-    preventKeyEvents: true,
-    preventWheelEvents: false,
-    updateOnResize: true,
-    kineticTau: 325,
-    spyMargin: 1
-  };
+    var defaultOpts = {
+      id: 0,
+      scrollX: 'bottom',
+      scrollY: 'right',
+      scrollXSlackSpace: 0,
+      scrollYSlackSpace: 0,
+      scrollXAlways: false,
+      scrollYAlways: false,
+      usePadding: false,
+      useObserver: true,
+      wheelSpeed: 1,
+      minSliderLength: 10,
+      useBothWheelAxes: false,
+      useKeyboard: true,
+      preventKeyEvents: true,
+      preventWheelEvents: false,
+      updateOnResize: true,
+      kineticTau: 325,
+      spyMargin: 1
+    };
 
-  return {
-    restrict: 'A',
-    transclude: true,
-    template: "<div class=\"scrollable\"><div class=\"scrollable-content\" ng-transclude></div><div class='scrollable-bar scrollable-bar-x'><div class='scrollable-slider'></div></div><div class='scrollable-bar scrollable-bar-y'><div class='scrollable-slider'></div></div></div>",
-    link: {
-      post: angular.noop,
-      pre: function ($scope, elem, attrs) {
+    return {
+      restrict: 'A',
+      transclude: true,
+      template: "<div class=\"scrollable\"><div class=\"scrollable-content\" ng-transclude></div><div class='scrollable-bar scrollable-bar-x'><div class='scrollable-slider'></div></div><div class='scrollable-bar scrollable-bar-y'><div class='scrollable-slider'></div></div></div>",
+      link: function ($scope, elem, attrs) {
         var
         config = extend({}, defaultOpts, $scope.$eval(attrs.ngScrollable)),
         el = element(elem.children()[0]),
@@ -157,24 +154,7 @@ angular.module('ngScrollable', [])
             $scope.$digest();
           }
         },
-        signal = function () {
-          switch (config.events) {
-          case 'broadcast':
-            $scope.$broadcast.apply($scope, arguments);
-            break;
-          case 'emit':
-            $scope.$emit.apply($scope, arguments);
-            break;
-          case 'both':
-            $scope.$broadcast.apply($scope, arguments);
-            $scope.$emit.apply($scope, arguments);
-            break;
-          case 'rootScope':
-            $rootScope.$emit.apply($scope, arguments);
-            break;
-          }
-        },
-        updateSliderX = function () {
+        updateSliderX = function (isolateElement) {
           // adjust container width by the amount of border pixels so that the
           // slider does not extend outside the bar region
           var cw = containerWidth - 3;
@@ -187,15 +167,17 @@ angular.module('ngScrollable', [])
             } else if (xSliderLeft < 0) {
               xSliderLeft = 0;
             }
-            dom.sliderX[0].style[xform] = 'translate3d(' + toPix(xSliderLeft) + ',0,0)';
-            dom.sliderX[0].style.width = toPix(xSliderWidth);
+            if(!angular.isElement(isolateElement)){
+               dom.sliderX[0].style[xform] = 'translate3d(' + toPix(xSliderLeft) + ',0,0)';
+               dom.sliderX[0].style.width = toPix(xSliderWidth);
+            } 
           } else {
             xSliderWidth = xSliderLeft = 0;
             dom.sliderX[0].style[xform] = 'translate3d(0,0,0)';
             dom.sliderX[0].style.width = '0';
           }
         },
-        updateSliderY = function () {
+        updateSliderY = function (isolateElement) {
           // adjust container height by the amount of border pixels so that the
           // slider does not extend outside the bar region
           var ch = containerHeight - 3;
@@ -208,9 +190,12 @@ angular.module('ngScrollable', [])
             } else if (ySliderTop < 0) {
               ySliderTop = 0;
             }
-            dom.sliderY[0].style[xform] = 'translate3d(0,' + toPix(ySliderTop) + ',0)';
-            dom.sliderY[0].style.height = toPix(ySliderHeight);
+            if(!angular.isElement(isolateElement)){
+              dom.sliderY[0].style[xform] = 'translate3d(0,' + toPix(ySliderTop) + ',0)';
+              dom.sliderY[0].style.height = toPix(ySliderHeight);
+            } 
           } else {
+            console.log('g')
             ySliderTop = ySliderHeight = 0;
             dom.sliderY[0].style[xform] = 'translate3d(0,0,0)';
             dom.sliderY[0].style.height = '0';
@@ -267,49 +252,55 @@ angular.module('ngScrollable', [])
             safeDigest();
           }
         },
-        scrollTo = function (left, top) {
+        scrollTo = function (left, top, isolateElement) {
           var oldTop = contentTop;
           var oldLeft = contentLeft;
-
           // clamp to 0 .. content{Height|Width} - container{Height|Width}
           contentTop = clamp(top, 0, contentHeight - containerHeight);
           contentLeft = clamp(left, 0, contentWidth - containerWidth);
-
-          // skip updates and events when nothing changed
-          if (oldTop === contentTop && oldLeft === contentLeft) {
-            return;
+          if(angular.isElement(isolateElement)){
+            isolateElement[0].style[xform] = 'translate3d(' + toPix(-contentLeft) + ',' + toPix(-contentTop) + ',0)';
+          } else {
+            dom.content[0].style[xform] = 'translate3d(' + toPix(-contentLeft) + ',' + toPix(-contentTop) + ',0)';
           }
-
-          // update CSS
-          dom.content[0].style[xform] = 'translate3d(' + toPix(-contentLeft) + ',' + toPix(-contentTop) + ',0)';
+          
 
           // update spies async to avoid overwriting one spy while a $watch is pending
           $scope.$applyAsync(updateSpies);
 
           // fire scrollSpy events only when entering a margin
           if (contentTop < containerHeight * config.spyMargin && oldTop >= containerHeight * config.spyMargin) {
-            signal('scrollable.spytop', contentTop, config.id);
+            $scope.$broadcast('scrollable.spytop', contentTop, config.id);
           }
           if (contentTop > contentHeight - containerHeight * (config.spyMargin + 1) && oldTop <= contentHeight - containerHeight * (config.spyMargin + 1)) {
-            signal('scrollable.spybottom', contentTop, config.id);
+            $scope.$broadcast('scrollable.spybottom', contentTop, config.id);
           }
           if (contentLeft < containerWidth * config.spyMargin && oldLeft >= containerWidth * config.spyMargin) {
-            signal('scrollable.spyleft', contentLeft, config.id);
+            $scope.$broadcast('scrollable.spyleft', contentLeft, config.id);
           }
           if (contentLeft > contentWidth - containerWidth * (config.spyMargin + 1) && oldLeft <= contentWidth - containerWidth * (config.spyMargin + 1)) {
-            signal('scrollable.spyright', contentLeft, config.id);
+            $scope.$broadcast('scrollable.spyright', contentLeft, config.id);
           }
+           
+           
+          if (contentTop < config.spyYTop) {
+            $scope.$broadcast('scrollable.spyYtop', contentTop, config.id);
+          }
+          if (contentTop + containerHeight > config.spyYbottom) {
+            $scope.$broadcast('scrollable.spyYbottom', contentTop, config.id);
+          }
+    
 
         },
-        scrollX = function (pos) {
+        scrollX = function (pos, isolateElement) {
           if (!isXActive) { return; }
-          scrollTo(pos, contentTop);
-          updateSliderX();
+          scrollTo(pos, contentTop, isolateElement);
+          updateSliderX(isolateElement);
         },
-        scrollY = function (pos) {
+        scrollY = function (pos, isolateElement) {
           if (!isYActive) { return; }
-          scrollTo(contentLeft, pos);
-          updateSliderY();
+          scrollTo(contentLeft, pos, isolateElement);
+          updateSliderY(isolateElement);
         },
         refresh = function (event, noNotify) {
           // read DOM
@@ -424,40 +415,7 @@ angular.module('ngScrollable', [])
             }
           }
         },
-        onMouseMoveX = function (e) {
-          if (isXScrolling) {
-            // scale slider move to content width
-            var deltaSlider = xpos(e) - dragStartPageX,
-                deltaContent = isTouchDevice ? -deltaSlider : parseInt(deltaSlider * (contentWidth - containerWidth) / (containerWidth - xSliderWidth), 10);
-            $$rAF(bind(null, scrollX, dragStartLeft + deltaContent));
-            return isTouchDevice || stop(e, true);
-          }
-        },
-        onMouseUpX = function (e) {
-          if (isXScrolling) {
-            $document.off('mousemove', onMouseMoveX);
-            $document.off('mouseup',   onMouseUpX);
-            dragStartLeft = dragStartPageX = null;
-          }
-          // kinetic scroll
-          if (trackerTimeout) { $interval.cancel(trackerTimeout); trackerTimeout = null; }
-          if (velocityX > 10 || velocityX < -10) {
-            amplitudeX = 0.8 * velocityX;
-            targetX = Math.round(contentLeft + amplitudeX);
-            trackTime = Date.now();
-            $$rAF(autoScrollX);
-          } else {
-            isXScrolling = false;
-            if (!isXScrolling && !isYScrolling) {
-              dom.el.removeClass('active');
-            }
-          }
-          return isTouchDevice || stop(e, true);
-        },
         onMouseDownX = function (e) {
-          if (isTouchDevice && preventTouch(e)) {
-            return isTouchDevice;
-          }
           dragStartPageX = xpos(e);
           dragStartLeft = contentLeft;
           isXScrolling = true;
@@ -471,39 +429,34 @@ angular.module('ngScrollable', [])
           dom.el.addClass('active');
           return isTouchDevice || stop(e, true);
         },
-        onMouseMoveY =  function (e) {
-          if (isYScrolling) {
-            var deltaSlider = ypos(e) - dragStartPageY,
-                deltaContent = isTouchDevice ? -deltaSlider : parseInt(deltaSlider * (contentHeight - containerHeight) / (containerHeight - ySliderHeight), 10);
-            $$rAF(bind(null, scrollY, dragStartTop + deltaContent));
+        onMouseMoveX = function (e) {
+          if (isXScrolling) {
+            // scale slider move to content width
+            var deltaSlider = xpos(e) - dragStartPageX,
+                deltaContent = isTouchDevice ? -deltaSlider : parseInt(deltaSlider * (contentWidth - containerWidth) / (containerWidth - xSliderWidth), 10);
+            $$rAF(bind(null, scrollX, dragStartLeft + deltaContent));
             return isTouchDevice || stop(e, true);
           }
         },
-        onMouseUpY =  function (e) {
-          if (isYScrolling) {
-            $document.off('mousemove', onMouseMoveY);
-            $document.off('mouseup', onMouseUpY);
-            dragStartTop = dragStartPageY = null;
+        onMouseUpX = function (e) {
+          if (isXScrolling) {
+            $document.off('mousemove', onMouseMoveX);
+            $document.off('mouseup',   onMouseUpX);
+            isXScrolling = false;
+            dom.el.removeClass('active');
+            dragStartLeft = dragStartPageX = null;
           }
           // kinetic scroll
           if (trackerTimeout) { $interval.cancel(trackerTimeout); trackerTimeout = null; }
-          if (velocityY > 10 || velocityY < -10) {
-            amplitudeY = 0.8 * velocityY;
-            targetY = Math.round(contentTop + amplitudeY);
+          if (velocityX > 10 || velocityX < -10) {
+            amplitudeX = 0.8 * velocityX;
+            targetX = Math.round(contentLeft + amplitudeX);
             trackTime = Date.now();
-            $$rAF(autoScrollY);
-          } else {
-            isYScrolling = false;
-            if (!isXScrolling && !isYScrolling) {
-              dom.el.removeClass('active');
-            }
+            $$rAF(autoScrollX);
           }
           return isTouchDevice || stop(e, true);
         },
         onMouseDownY = function (e) {
-          if (isTouchDevice && preventTouch(e)) {
-            return isTouchDevice;
-          }
           dragStartPageY = ypos(e);
           dragStartTop = contentTop;
           isYScrolling = true;
@@ -518,6 +471,35 @@ angular.module('ngScrollable', [])
           // stop also on touch devices
           return isTouchDevice || stop(e, true);
         },
+        onMouseMoveY =  function (e) {
+          if (isYScrolling) {
+            var deltaSlider = ypos(e) - dragStartPageY,
+                deltaContent = isTouchDevice ? -deltaSlider : parseInt(deltaSlider * (contentHeight - containerHeight) / (containerHeight - ySliderHeight), 10);
+            $$rAF(bind(null, scrollY, dragStartTop + deltaContent));
+            return isTouchDevice || stop(e, true);
+          }
+        },
+        onMouseUpY =  function (e) {
+          if (isYScrolling) {
+            $document.off('mousemove', onMouseMoveY);
+            $document.off('mouseup', onMouseUpY);
+            isYScrolling = false;
+            dom.el.removeClass('active');
+            dragStartTop = dragStartPageY = null;
+          }
+          // kinetic scroll
+          if (trackerTimeout) { $interval.cancel(trackerTimeout); trackerTimeout = null; }
+          if (velocityY > 10 || velocityY < -10) {
+            amplitudeY = 0.8 * velocityY;
+            targetY = Math.round(contentTop + amplitudeY);
+            trackTime = Date.now();
+            $$rAF(autoScrollY);
+          }
+          return isTouchDevice || stop(e, true);
+        },
+        // Get Offset without jquery
+        // element.prop('offsetTop')
+        // element[0].getBoundingClientRect().top
         clickBarX = function (e) {
           var halfOfScrollbarLength = parseInt(xSliderWidth / 2, 10),
               positionLeft = e.clientX - dom.barX[0].getBoundingClientRect().left - halfOfScrollbarLength,
@@ -589,18 +571,6 @@ angular.module('ngScrollable', [])
             e.preventDefault();
           }
         },
-        preventTouch = function (e) {
-          var over = e.explicitOriginalTarget || e.target;
-          // default scroll inside explicit containers
-          while (over) {
-            if (over.className && typeof(over.className) === 'string' && over.className.indexOf('scrollable-ignore') > -1) {
-              // console.log('preventing touch');
-              return true;
-            }
-            over = over.parentNode;
-          }
-          return false;
-        },
         preventWheel = function (e) {
           var over = e.explicitOriginalTarget || e.target;
           if (!over) {
@@ -658,7 +628,6 @@ angular.module('ngScrollable', [])
           }
 
           // avoid flickering in Chrome: disabled animated translate
-          wheelTime = Date.now();
           if (!activeTimeout) {
             dom.el.addClass('active');
             activeTimeout = $timeout(timeoutWheel, 500);
@@ -704,36 +673,16 @@ angular.module('ngScrollable', [])
         },
 
         handleScroll = function (e) {
+          var deltaY = dom.el[0].scrollTop, deltaX = dom.el[0].scrollLeft;
+        //  deltaY = 0;
+          if (deltaY) {
+            $$rAF(bind(null, scrollY, contentTop + deltaY + 2));
+          }
+          if (deltaX) {
+            $$rAF(bind(null, scrollX, contentLeft + deltaX + 2));
+          }
           dom.el[0].scrollTop = dom.el[0].scrollLeft = 0;
           stop(e, true);
-        },
-
-        handleFocus = function (e) {
-          var t = e.target;
-          var top = 0, left = 0, height = t.offsetHeight, width = t.offsetWidth;
-
-          // stop concurrent kinetic scroll
-          velocityY = amplitudeY = 0;
-
-          // determine the focused' element offset inside the scrollable area
-          while (t && !t.classList.contains('scrollable')) {
-            top += t.offsetTop;
-            left += t.offsetLeft;
-            t = t.offsetParent;
-          }
-
-          // if out of view, scroll into view
-          if (top < contentTop) {
-            $$rAF(bind(null, scrollY, top - 3));
-          } else if (top + height > contentTop + containerHeight) {
-            $$rAF(bind(null, scrollY, top - containerHeight + height + 3));
-          }
-
-          if (left < contentLeft) {
-            $$rAF(bind(null, scrollX, left - 3));
-          } else if (left + width > contentLeft + containerWidth) {
-            $$rAF(bind(null, scrollX, left - containerWidth + width + 3));
-          }
         },
 
         registerHandlers = function () {
@@ -803,7 +752,6 @@ angular.module('ngScrollable', [])
 
           // scroll event (form tabbing)
           dom.el.on('scroll', handleScroll);
-          dom.el[0].addEventListener('focus', handleFocus, true);
 
           // keyboard
           if (config.useKeyboard) {
@@ -858,10 +806,12 @@ angular.module('ngScrollable', [])
             $document.off('keydown', handleKey);
           }
 
-          // mouse wheel, scroll event and focus
+          // mouse wheel
           dom.el.off('wheel', handleWheel);
+
+          // scroll event
           dom.el.off( 'scroll', handleScroll);
-          dom.el[0].removeEventListener('focus', handleFocus, true);
+
         };
 
 
@@ -925,21 +875,19 @@ angular.module('ngScrollable', [])
           // defer to next digest
           $scope.$applyAsync(function () { scrollY(contentHeight); });
         });
-
-        //may be broadcast from outside to scroll to custom content dimensions
-        $scope.$on('scrollable.scroll.x', function(e, left) {
-          //defer to next digest
+        $scope.$on('scrollable.scroll.y', function(e, top, isolateElement){
+          // defer to next digest
+          $scope.$applyAsync(function () { scrollY(top, isolateElement); });
+        });
+        $scope.$on('scrollable.scroll.x', function(e, left){
+          // defer to next digest
           $scope.$applyAsync(function () { scrollX(left); });
         });
-
-        $scope.$on('scrollable.scroll.y', function(e, top) {
-          //defer to next digest
-          $scope.$applyAsync(function () { scrollY(top); });
-        });
-
-        $scope.$on('scrollable.scroll.xy', function(e, left, top) {
-          //defer to next digest
-          $scope.$applyAsync(function () { scrollY(top); scrollX(left); });
+        $scope.$on('scrollable.scroll.xy', function(e, left, top){
+          $scope.$applyAsync(function () { 
+            scrollX(left);
+            scrollY(top);
+          });
         });
 
         // (un)register event handlers on scope destroy
@@ -975,6 +923,6 @@ angular.module('ngScrollable', [])
           }
         });
       }
-    }
-  };
-}]);
+    };
+  }
+]);
