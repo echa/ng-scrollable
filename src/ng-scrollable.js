@@ -114,6 +114,7 @@ angular.module('ngScrollable', [])
         domObserver,
         isXActive = false,
         isYActive = false,
+				isDisableY = !config.noDisableY,
         containerWidth = 0,
         containerHeight = 0,
         contentWidth = 0,
@@ -669,12 +670,13 @@ angular.module('ngScrollable', [])
             // only be used for vertical scrolling - this is the default
             $$rAF(bind(null, scrollY, contentTop + deltaY));
             $$rAF(bind(null, scrollX, contentLeft + deltaX));
+
             if (isYActive) {
               stopit = !verticalEdge(0);
             }
-            // if (isXActive) {
-            //   stopit = stopit && !deltaY && !horizontalEdge(0);
-            // }
+            if (isXActive && !isDisableY) {
+              stopit = stopit && !deltaY && !horizontalEdge(0);
+            }
           } else if (isYActive && !isXActive) {
             // only vertical scrollbar is active and useBothWheelAxes option is
             // active, so let's scroll vertical bar using both mouse wheel axes
