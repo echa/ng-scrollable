@@ -75,6 +75,7 @@ angular.module('ngScrollable', [])
     events: 'broadcast',
     scrollX: 'bottom',
     scrollY: 'right',
+    dragContentX: false,
     scrollXSlackSpace: 0,
     scrollYSlackSpace: 0,
     scrollXAlways: false,
@@ -771,6 +772,12 @@ angular.module('ngScrollable', [])
             // slider drag
             dom.sliderX.on('mousedown', onMouseDownX);
 
+            if (config.dragContentX) {
+							dom.content.on('click', stop);
+							dom.content.on('mousedown', onMouseDownX);
+						}
+
+
             if (isTouchDevice) {
 
               // content touch/drag
@@ -829,6 +836,7 @@ angular.module('ngScrollable', [])
 
           // slider events
           dom.sliderX.off('click', stop);
+          dom.content.off('click', stop);
           dom.barX.off('click',    clickBarX);
           dom.sliderY.off('click', stop);
           dom.barY.off('click',    clickBarY);
@@ -845,6 +853,12 @@ angular.module('ngScrollable', [])
 
           // slider drag
           dom.sliderX.off('mousedown', onMouseDownX);
+
+
+					if (config.dragContentX) {
+						dom.content.off('mousedown', onMouseDownX);
+					}
+
           $document.off('mousemove',   onMouseMoveX);
           $document.off('mouseup',     onMouseUpX);
 
