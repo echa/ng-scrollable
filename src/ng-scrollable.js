@@ -431,10 +431,21 @@ angular.module('ngScrollable', [])
             // scale slider move to content width
             var deltaSlider = xpos(e) - dragStartPageX,
                 deltaContent = isTouchDevice ? -deltaSlider : parseInt(deltaSlider * (contentWidth - containerWidth) / (containerWidth - xSliderWidth), 10);
+
             $$rAF(bind(null, scrollX, dragStartLeft + deltaContent));
             return isTouchDevice || stop(e, true);
           }
         },
+				onMouseMoveXInversion = function (e) {
+					if (isXScrolling) {
+						// scale slider move to content width
+						var deltaSlider = xpos(e) - dragStartPageX,
+							deltaContent = isTouchDevice ? -deltaSlider : parseInt(deltaSlider * (contentWidth - containerWidth) / (containerWidth - xSliderWidth), 10);
+						deltaContent = -deltaContent;
+						$$rAF(bind(null, scrollX, dragStartLeft + deltaContent));
+						return isTouchDevice || stop(e, true);
+					}
+				},
         onMouseUpX = function (e) {
           if (isXScrolling) {
             $document.off('mousemove', onMouseMoveX);
@@ -460,6 +471,7 @@ angular.module('ngScrollable', [])
           if (isTouchDevice && preventTouch(e)) {
             return isTouchDevice;
           }
+
           dragStartPageX = xpos(e);
           dragStartLeft = contentLeft;
           isXScrolling = true;
@@ -473,6 +485,24 @@ angular.module('ngScrollable', [])
           dom.el.addClass('active');
           return isTouchDevice || stop(e, true);
         },
+				onMouseDownXInversion = function (e) {
+					if (isTouchDevice && preventTouch(e)) {
+						return isTouchDevice;
+					}
+
+					dragStartPageX = xpos(e);
+					dragStartLeft = contentLeft;
+					isXScrolling = true;
+					velocityX = amplitudeX = 0;
+					frameX = contentLeft;
+					$document.on('mousemove', onMouseMoveXInversion);
+					$document.on('mouseup',   onMouseUpX);
+					if (isTouchDevice && !trackerTimeout) {
+						trackerTimeout = $interval(track, 50);
+					}
+					dom.el.addClass('active');
+					return isTouchDevice || stop(e, true);
+				},
         onMouseMoveY =  function (e) {
           if (isYScrolling) {
             var deltaSlider = ypos(e) - dragStartPageY,
@@ -774,7 +804,7 @@ angular.module('ngScrollable', [])
 
             if (config.dragContentX) {
 							dom.content.on('click', stop);
-							dom.content.on('mousedown', onMouseDownX);
+							dom.content.on('mousedown', onMouseDownXInversion);
 						}
 
 
@@ -856,7 +886,7 @@ angular.module('ngScrollable', [])
 
 
 					if (config.dragContentX) {
-						dom.content.off('mousedown', onMouseDownX);
+						dom.content.off('mousedown', onMouseDownXInversion);
 					}
 
           $document.off('mousemove',   onMouseMoveX);
