@@ -73,7 +73,7 @@ angular.module('ngScrollable', [])
   var defaultOpts = {
     id: 0,
     events: 'broadcast',
-		scrollEvents: false,
+		fadeAction: true,
     scrollX: 'bottom',
     scrollY: 'right',
     dragContentX: false,
@@ -91,7 +91,7 @@ angular.module('ngScrollable', [])
     preventWheelEvents: false,
     updateOnResize: true,
     kineticTau: 325,
-    spyMargin: 1
+    spyMargin: 0
   };
 
   return {
@@ -192,6 +192,7 @@ angular.module('ngScrollable', [])
             }
             dom.sliderX[0].style[xform] = 'translate3d(' + toPix(xSliderLeft) + ',0,0)';
             dom.sliderX[0].style.width = toPix(xSliderWidth);
+
           } else {
             xSliderWidth = xSliderLeft = 0;
             dom.sliderX[0].style[xform] = 'translate3d(0,0,0)';
@@ -286,6 +287,17 @@ angular.module('ngScrollable', [])
           // update CSS
           dom.content[0].style[xform] = 'translate3d(' + toPix(-contentLeft) + ',' + toPix(-contentTop) + ',0)';
 
+          if (config.fadeAction) {
+						if (contentLeft === 0) {
+							dom.el.addClass('scrollable--fadeRight');
+						} else if (contentLeft === (contentWidth - containerWidth)) {
+							dom.el.addClass('scrollable--fadeLeft');
+						} else {
+							dom.el.removeClass('scrollable--fadeRight');
+							dom.el.removeClass('scrollable--fadeLeft');
+						}
+					}
+
           // update spies async to avoid overwriting one spy while a $watch is pending
           $scope.$applyAsync(updateSpies);
 
@@ -307,19 +319,11 @@ angular.module('ngScrollable', [])
         scrollX = function (pos) {
           if (!isXActive) { return; }
           scrollTo(pos, contentTop);
-          if (config.scrollEvents) {
-						$scope.$emit('scrollableX', pos);
-						$scope.$broadcast('scrollableX', pos);
-					}
           updateSliderX();
         },
         scrollY = function (pos) {
           if (!isYActive) { return; }
           scrollTo(contentLeft, pos);
-					if (config.scrollEvents) {
-						$scope.$emit('scrollableY', pos);
-						$scope.$broadcast('scrollableY', pos);
-					}
           updateSliderY();
         },
         refresh = function (event, noNotify) {
