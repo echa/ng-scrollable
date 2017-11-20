@@ -73,11 +73,11 @@ angular.module('ngScrollable', [])
   var defaultOpts = {
     id: 0,
     events: 'broadcast',
-		fadeAction: true,
+		fadeAction: false,
     scrollX: 'bottom',
     scrollY: 'right',
     dragContentX: false,
-    scrollXSlackSpace: 0,
+		scrollXSlackSpace: 0,
     scrollYSlackSpace: 0,
     scrollXAlways: false,
     scrollYAlways: false,
