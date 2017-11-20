@@ -73,6 +73,7 @@ angular.module('ngScrollable', [])
   var defaultOpts = {
     id: 0,
     events: 'broadcast',
+		scrollEvents: false,
     scrollX: 'bottom',
     scrollY: 'right',
     dragContentX: false,
@@ -306,11 +307,19 @@ angular.module('ngScrollable', [])
         scrollX = function (pos) {
           if (!isXActive) { return; }
           scrollTo(pos, contentTop);
+          if (config.scrollEvents) {
+						$scope.$emit('scrollableX', pos);
+						$scope.$broadcast('scrollableX', pos);
+					}
           updateSliderX();
         },
         scrollY = function (pos) {
           if (!isYActive) { return; }
           scrollTo(contentLeft, pos);
+					if (config.scrollEvents) {
+						$scope.$emit('scrollableY', pos);
+						$scope.$broadcast('scrollableY', pos);
+					}
           updateSliderY();
         },
         refresh = function (event, noNotify) {
