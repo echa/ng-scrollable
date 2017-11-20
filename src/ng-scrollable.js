@@ -91,7 +91,7 @@ angular.module('ngScrollable', [])
     preventWheelEvents: false,
     updateOnResize: true,
     kineticTau: 325,
-    spyMargin: 0
+    spyMargin: 1
   };
 
   return {
@@ -275,7 +275,18 @@ angular.module('ngScrollable', [])
           var oldTop = contentTop;
           var oldLeft = contentLeft;
 
-          // clamp to 0 .. content{Height|Width} - container{Height|Width}
+					if (config.fadeAction) {
+						if (contentLeft === 0) {
+							dom.el.addClass('scrollable--fadeRight');
+						} else if (contentLeft === (contentWidth - containerWidth)) {
+							dom.el.addClass('scrollable--fadeLeft');
+						} else {
+							dom.el.removeClass('scrollable--fadeRight');
+							dom.el.removeClass('scrollable--fadeLeft');
+						}
+					}
+
+					// clamp to 0 .. content{Height|Width} - container{Height|Width}
           contentTop = clamp(top, 0, contentHeight - containerHeight);
           contentLeft = clamp(left, 0, contentWidth - containerWidth);
 
@@ -286,17 +297,6 @@ angular.module('ngScrollable', [])
 
           // update CSS
           dom.content[0].style[xform] = 'translate3d(' + toPix(-contentLeft) + ',' + toPix(-contentTop) + ',0)';
-
-          if (config.fadeAction) {
-						if (contentLeft === 0) {
-							dom.el.addClass('scrollable--fadeRight');
-						} else if (contentLeft === (contentWidth - containerWidth)) {
-							dom.el.addClass('scrollable--fadeLeft');
-						} else {
-							dom.el.removeClass('scrollable--fadeRight');
-							dom.el.removeClass('scrollable--fadeLeft');
-						}
-					}
 
           // update spies async to avoid overwriting one spy while a $watch is pending
           $scope.$applyAsync(updateSpies);
@@ -1008,6 +1008,10 @@ angular.module('ngScrollable', [])
         });
 
         // init
+				if (config.fadeAction) {
+					dom.el.addClass('scrollable--fade scrollable--fadeRight');
+				}
+
         registerHandlers();
         refresh();
 
