@@ -76,6 +76,7 @@ angular.module('ngScrollable', [])
 		fadeAction: false,
     scrollX: 'bottom',
     scrollY: 'right',
+    arrowX: false,
     dragContentX: false,
 		scrollXSlackSpace: 0,
     scrollYSlackSpace: 0,
@@ -97,7 +98,7 @@ angular.module('ngScrollable', [])
   return {
     restrict: 'A',
     transclude: true,
-    template: "<div class=\"scrollable\"><div class=\"scrollable-content\" ng-transclude></div><div class='scrollable-bar scrollable-bar-x'><div class='scrollable-slider'></div></div><div class='scrollable-bar scrollable-bar-y'><div class='scrollable-slider'></div></div></div>",
+    template: "<div class=\"scrollable\"><div class=\"scrollable-content\" ng-transclude></div><div class='scrollable-bar scrollable-bar-x'><div class='scrollable-slider'></div></div><div class='scrollable-bar scrollable-bar-y'><div class='scrollable-slider'></div></div><div class='scrollable-arrow scrollable-arrow--left'></div><div class='scrollable-arrow scrollable-arrow--right'></div></div>",
     link: {
       post: angular.noop,
       pre: function ($scope, elem, attrs) {
@@ -111,7 +112,9 @@ angular.module('ngScrollable', [])
           barX: element(el.children()[1]),
           barY: element(el.children()[2]),
           sliderX: element(element(el.children()[1]).children()[0]),
-          sliderY: element(element(el.children()[2]).children()[0])
+          sliderY: element(element(el.children()[2]).children()[0]),
+					arrowLeft: element(el.children()[3]),
+					arrowRight: element(el.children()[4])
         },
         domObserver,
         isXActive = false,
@@ -321,6 +324,12 @@ angular.module('ngScrollable', [])
           scrollTo(pos, contentTop);
           updateSliderX();
         },
+				arrowLeftScrollX = function() {
+					scrollX(contentLeft-100);
+				},
+				arrowRightScrollX = function() {
+					scrollX(contentLeft+100);
+				},
         scrollY = function (pos) {
           if (!isYActive) { return; }
           scrollTo(contentLeft, pos);
@@ -820,9 +829,12 @@ angular.module('ngScrollable', [])
 							dom.content.on('mousedown', onMouseDownXInversion);
 						}
 
+						if (config.arrowX) {
+							dom.arrowLeft.on('click', arrowLeftScrollX);
+							dom.arrowRight.on('click', arrowRightScrollX);
+						}
 
             if (isTouchDevice) {
-
               // content touch/drag
               dom.el.on('touchstart', onMouseDownX);
               dom.el.on('touchmove',  onMouseMoveX);
@@ -900,6 +912,11 @@ angular.module('ngScrollable', [])
 
 					if (config.dragContentX) {
 						dom.content.off('mousedown', onMouseDownXInversion);
+					}
+
+					if (config.arrowX) {
+						dom.arrowLeft.off('click', scrollX(contentLeft-100));
+						dom.arrowRight.off('click', scrollX(contentLeft+100));
 					}
 
           $document.off('mousemove',   onMouseMoveX);
@@ -1010,6 +1027,10 @@ angular.module('ngScrollable', [])
         // init
 				if (config.fadeAction) {
 					dom.el.addClass('scrollable--fade scrollable--fadeRight');
+				}
+
+				if (config.arrowX) {
+					dom.el.addClass('scrollable--arrowX');
 				}
 
         registerHandlers();
