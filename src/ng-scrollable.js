@@ -242,6 +242,20 @@ angular.module('ngScrollable', [])
           dom.sliderX[0].style.display = isXActive || showAlways ? 'inherit' : 'none';
           dom.arrowLeft[0].style.display = isXActive || showAlways ? 'inherit' : 'none';
           dom.arrowRight[0].style.display = isXActive || showAlways ? 'inherit' : 'none';
+
+          if (isXActive && config.fadeAction) {
+              dom.el.addClass('scrollable--fade');
+          } else {
+              dom.el.removeClass('scrollable--fade');
+              dom.el.removeClass('scrollable--fadeRight');
+              dom.el.removeClass('scrollable--fadeLeft');
+          }
+
+          if (isXActive && config.arrowX) {
+              dom.el.addClass('scrollable--arrowX');
+          } else {
+              dom.el.removeClass('scrollable--arrowX');
+          }
         },
         updateBarY = function () {
           var showAlways = config.scrollYAlways,
@@ -280,18 +294,8 @@ angular.module('ngScrollable', [])
           var oldTop = contentTop;
           var oldLeft = contentLeft;
 
-					if (config.fadeAction) {
-						if (contentLeft === 0) {
-							dom.el.addClass('scrollable--fadeRight');
-						} else if (contentLeft === (contentWidth - containerWidth)) {
-							dom.el.addClass('scrollable--fadeLeft');
-						} else {
-							dom.el.removeClass('scrollable--fadeRight');
-							dom.el.removeClass('scrollable--fadeLeft');
-						}
-					}
-
-					// clamp to 0 .. content{Height|Width} - container{Height|Width}
+          updateFade();
+          // clamp to 0 .. content{Height|Width} - container{Height|Width}
           contentTop = clamp(top, 0, contentHeight - containerHeight);
           contentLeft = clamp(left, 0, contentWidth - containerWidth);
 
@@ -321,6 +325,19 @@ angular.module('ngScrollable', [])
           }
 
         },
+        updateFade = function () {
+            if (config.fadeAction) {
+                if (contentLeft === 0) {
+                    dom.el.addClass('scrollable--fadeRight');
+                } else if (contentLeft === (contentWidth - containerWidth)) {
+                    dom.el.addClass('scrollable--fadeLeft');
+                } else {
+                    dom.el.removeClass('scrollable--fadeRight');
+                    dom.el.removeClass('scrollable--fadeLeft');
+                }
+            }
+        },
+
         scrollX = function (pos) {
           if (!isXActive) { return; }
           scrollTo(pos, contentTop);
@@ -1026,17 +1043,19 @@ angular.module('ngScrollable', [])
           unregisterHandlers();
         });
 
-        // init
-				if (config.fadeAction) {
-					dom.el.addClass('scrollable--fade scrollable--fadeRight');
-				}
-
-				if (config.arrowX) {
-					dom.el.addClass('scrollable--arrowX');
-				}
 
         registerHandlers();
         refresh();
+
+        // init
+        if (config.fadeAction) {
+            dom.el.addClass('scrollable--fade');
+            updateFade();
+        }
+
+        if (config.arrowX) {
+            dom.el.addClass('scrollable--arrowX');
+        }
 
         // watch and set spy attribute value expressions
         angular.forEach(['spyX', 'spyY'], function (attr) {
