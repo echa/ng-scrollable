@@ -104,7 +104,8 @@
   color: #000;
   margin-top: -24px;
   transition: opacity .4s ease;
-  display: none;
+  visibility: hidden;
+  opacity: 0;
 }
 
 .scrollable-arrow--left{
@@ -128,15 +129,19 @@
 }
 
 .scrollable--arrowX .scrollable-arrow{
-  display: block;
+    visibility: visible;
 }
 
 .scrollable--arrowX.scrollable--fadeRight .scrollable-arrow--left{
-  display: none;
+    visibility: hidden;
 }
 
 .scrollable--arrowX.scrollable--fadeLeft .scrollable-arrow--right{
-  display: none;
+    visibility: hidden;
+}
+
+.scrollable:hover .scrollable-arrow{
+    opacity: 1;
 }
 
 .scrollable--fade:before,

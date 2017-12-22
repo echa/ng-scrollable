@@ -240,6 +240,8 @@ angular.module('ngScrollable', [])
           }
           dom.barX.css(scrollbarXStyles);
           dom.sliderX[0].style.display = isXActive || showAlways ? 'inherit' : 'none';
+          dom.arrowLeft[0].style.display = isXActive || showAlways ? 'inherit' : 'none';
+          dom.arrowRight[0].style.display = isXActive || showAlways ? 'inherit' : 'none';
         },
         updateBarY = function () {
           var showAlways = config.scrollYAlways,
