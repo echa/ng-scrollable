@@ -294,7 +294,7 @@ angular.module('ngScrollable', [])
           var oldTop = contentTop;
           var oldLeft = contentLeft;
 
-          updateFade();
+
           // clamp to 0 .. content{Height|Width} - container{Height|Width}
           contentTop = clamp(top, 0, contentHeight - containerHeight);
           contentLeft = clamp(left, 0, contentWidth - containerWidth);
@@ -304,6 +304,7 @@ angular.module('ngScrollable', [])
             return;
           }
 
+					updateFade();
           // update CSS
           dom.content[0].style[xform] = 'translate3d(' + toPix(-contentLeft) + ',' + toPix(-contentTop) + ',0)';
 
