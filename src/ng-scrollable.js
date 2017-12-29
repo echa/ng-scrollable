@@ -243,19 +243,19 @@ angular.module('ngScrollable', [])
           dom.arrowLeft[0].style.display = isXActive || showAlways ? 'inherit' : 'none';
           dom.arrowRight[0].style.display = isXActive || showAlways ? 'inherit' : 'none';
 
-          if (isXActive && config.fadeAction) {
-              dom.el.addClass('scrollable--fade');
-          } else {
-              dom.el.removeClass('scrollable--fade');
-              dom.el.removeClass('scrollable--fadeRight');
-              dom.el.removeClass('scrollable--fadeLeft');
-          }
-
-          if (isXActive && config.arrowX) {
-              dom.el.addClass('scrollable--arrowX');
-          } else {
-              dom.el.removeClass('scrollable--arrowX');
-          }
+          // if (config.fadeAction) {
+          //     dom.el.addClass('scrollable--fade');
+          // } else {
+          //     dom.el.removeClass('scrollable--fade');
+          //     dom.el.removeClass('scrollable--fadeRight');
+          //     dom.el.removeClass('scrollable--fadeLeft');
+          // }
+          //
+          // if (isXActive && config.arrowX) {
+          //     dom.el.addClass('scrollable--arrowX');
+          // } else {
+          //     dom.el.removeClass('scrollable--arrowX');
+          // }
         },
         updateBarY = function () {
           var showAlways = config.scrollYAlways,
@@ -304,13 +304,13 @@ angular.module('ngScrollable', [])
             return;
           }
 
-					updateFade();
+
           // update CSS
           dom.content[0].style[xform] = 'translate3d(' + toPix(-contentLeft) + ',' + toPix(-contentTop) + ',0)';
 
           // update spies async to avoid overwriting one spy while a $watch is pending
           $scope.$applyAsync(updateSpies);
-
+          updateFade();
           // fire scrollSpy events only when entering a margin
           if (contentTop < containerHeight * config.spyMargin && oldTop >= containerHeight * config.spyMargin) {
             signal('scrollable.spytop', contentTop, config.id);
@@ -330,8 +330,10 @@ angular.module('ngScrollable', [])
             if (config.fadeAction) {
                 if (contentLeft === 0) {
                     dom.el.addClass('scrollable--fadeRight');
-                } else if (contentLeft === (contentWidth - containerWidth)) {
+                    dom.el.removeClass('scrollable--fadeLeft');
+                } else if ((contentLeft === (contentWidth - containerWidth))) {
                     dom.el.addClass('scrollable--fadeLeft');
+                    dom.el.removeClass('scrollable--fadeRight');
                 } else {
                     dom.el.removeClass('scrollable--fadeRight');
                     dom.el.removeClass('scrollable--fadeLeft');
@@ -343,13 +345,14 @@ angular.module('ngScrollable', [])
           if (!isXActive) { return; }
           scrollTo(pos, contentTop);
           updateSliderX();
+
         },
-				arrowLeftScrollX = function() {
-					scrollX(contentLeft-100);
-				},
-				arrowRightScrollX = function() {
-					scrollX(contentLeft+100);
-				},
+        arrowLeftScrollX = function() {
+            scrollX(contentLeft-100);
+        },
+        arrowRightScrollX = function() {
+            scrollX(contentLeft+100);
+        },
         scrollY = function (pos) {
           if (!isYActive) { return; }
           scrollTo(contentLeft, pos);
@@ -396,6 +399,7 @@ angular.module('ngScrollable', [])
 
           // broadcast the new dimensions down the scope stack so inner content
           // controllers can react appropriately
+          updateFade();
           if (!noNotify) {
             $scope.$broadcast('scrollable.dimensions', containerWidth, containerHeight, contentWidth, contentHeight, config.id);
           }
