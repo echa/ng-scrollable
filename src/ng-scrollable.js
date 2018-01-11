@@ -242,20 +242,6 @@ angular.module('ngScrollable', [])
           dom.sliderX[0].style.display = isXActive || showAlways ? 'inherit' : 'none';
           dom.arrowLeft[0].style.display = isXActive || showAlways ? 'inherit' : 'none';
           dom.arrowRight[0].style.display = isXActive || showAlways ? 'inherit' : 'none';
-
-          // if (config.fadeAction) {
-          //     dom.el.addClass('scrollable--fade');
-          // } else {
-          //     dom.el.removeClass('scrollable--fade');
-          //     dom.el.removeClass('scrollable--fadeRight');
-          //     dom.el.removeClass('scrollable--fadeLeft');
-          // }
-          //
-          // if (isXActive && config.arrowX) {
-          //     dom.el.addClass('scrollable--arrowX');
-          // } else {
-          //     dom.el.removeClass('scrollable--arrowX');
-          // }
         },
         updateBarY = function () {
           var showAlways = config.scrollYAlways,
