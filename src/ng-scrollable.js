@@ -328,10 +328,13 @@ angular.module('ngScrollable', [])
         },
         updateFade = function () {
             if (config.fadeAction) {
-                if (contentLeft === 0) {
+            		if (contentLeft === 0 && (contentLeft === (contentWidth - containerWidth)) ){
+									dom.el.addClass('scrollable--fadeRight');
+									dom.el.addClass('scrollable--fadeLeft');
+								} else if (contentLeft === 0) {
                     dom.el.addClass('scrollable--fadeRight');
                     dom.el.removeClass('scrollable--fadeLeft');
-                } else if ((contentLeft === (contentWidth - containerWidth))) {
+                } else if ((contentLeft === (contentWidth - containerWidth)) ) {
                     dom.el.addClass('scrollable--fadeLeft');
                     dom.el.removeClass('scrollable--fadeRight');
                 } else {
