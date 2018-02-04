@@ -93,3 +93,91 @@
 .scrollable .scrollable-bar-y .scrollable-slider {
     width: 8px;
 }
+
+.scrollable-arrow{
+  position: absolute;
+  z-index: 10;
+  cursor: pointer;
+  top: 50%;
+  font-size: 3rem;
+  line-height: 4rem;
+  color: #000;
+  margin-top: -24px;
+  transition: opacity .4s ease;
+  visibility: hidden;
+  opacity: 0;
+}
+
+.scrollable-arrow--left{
+  left: 5px;
+}
+
+.scrollable-arrow--right{
+  right: 5px;
+}
+
+.scrollable-arrow--left:before{
+  content: '<';
+}
+
+.scrollable-arrow--right:before{
+  content: '>';
+}
+
+.scrollable-arrow:hover{
+  opacity: .5;
+}
+
+.scrollable--arrowX .scrollable-arrow{
+    visibility: visible;
+}
+
+.scrollable--arrowX.scrollable--fadeRight .scrollable-arrow--left{
+    visibility: hidden;
+}
+
+.scrollable--arrowX.scrollable--fadeLeft .scrollable-arrow--right{
+    visibility: hidden;
+}
+
+.scrollable:hover .scrollable-arrow{
+    opacity: 1;
+}
+
+.scrollable--fade:before,
+.scrollable--fade:after{
+  content: '';
+  display: block;
+  position: absolute;
+  z-index: 5;
+  top: 0;
+  height: 100%;
+  width: 80px;
+  pointer-events: none;
+  transition: opacity .4s ease;
+}
+
+.scrollable--fade:before{
+  left: 0;
+  background: -moz-linear-gradient(left, rgba(255,255,255,1) 0%, rgba(255,255,255,0.76) 55%, rgba(255,255,255,0) 100%);
+  background: -webkit-linear-gradient(left, rgba(255,255,255,1) 0%,rgba(255,255,255,0.76) 55%,rgba(255,255,255,0) 100%);
+  background: linear-gradient(to right, rgba(255,255,255,1) 0%,rgba(255,255,255,0.76) 55%,rgba(255,255,255,0) 100%);
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#00ffffff',GradientType=1 );
+}
+
+
+.scrollable--fade:after{
+  right: 0;
+  background: -moz-linear-gradient(left, rgba(255,255,255,0) 0%, rgba(255,255,255,0.76) 45%, rgba(255,255,255,1) 100%);
+  background: -webkit-linear-gradient(left, rgba(255,255,255,0) 0%,rgba(255,255,255,0.76) 45%,rgba(255,255,255,1) 100%);
+  background: linear-gradient(to right, rgba(255,255,255,0) 0%,rgba(255,255,255,0.76) 45%,rgba(255,255,255,1) 100%);
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00ffffff', endColorstr='#ffffff',GradientType=1 );
+}
+
+.scrollable--fadeRight:before{
+  opacity: 0;
+}
+
+.scrollable--fadeLeft:after{
+  opacity: 0;
+}

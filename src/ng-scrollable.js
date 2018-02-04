@@ -73,9 +73,12 @@ angular.module('ngScrollable', [])
   var defaultOpts = {
     id: 0,
     events: 'broadcast',
+		fadeAction: false,
     scrollX: 'bottom',
     scrollY: 'right',
-    scrollXSlackSpace: 0,
+    arrowX: false,
+    dragContentX: false,
+		scrollXSlackSpace: 0,
     scrollYSlackSpace: 0,
     scrollXAlways: false,
     scrollYAlways: false,
@@ -95,7 +98,7 @@ angular.module('ngScrollable', [])
   return {
     restrict: 'A',
     transclude: true,
-    template: "<div class=\"scrollable\"><div class=\"scrollable-content\" ng-transclude></div><div class='scrollable-bar scrollable-bar-x'><div class='scrollable-slider'></div></div><div class='scrollable-bar scrollable-bar-y'><div class='scrollable-slider'></div></div></div>",
+    template: "<div class=\"scrollable\"><div class=\"scrollable-content\" ng-transclude></div><div class='scrollable-bar scrollable-bar-x'><div class='scrollable-slider'></div></div><div class='scrollable-bar scrollable-bar-y'><div class='scrollable-slider'></div></div><div class='scrollable-arrow scrollable-arrow--left'></div><div class='scrollable-arrow scrollable-arrow--right'></div></div>",
     link: {
       post: angular.noop,
       pre: function ($scope, elem, attrs) {
@@ -109,11 +112,14 @@ angular.module('ngScrollable', [])
           barX: element(el.children()[1]),
           barY: element(el.children()[2]),
           sliderX: element(element(el.children()[1]).children()[0]),
-          sliderY: element(element(el.children()[2]).children()[0])
+          sliderY: element(element(el.children()[2]).children()[0]),
+					arrowLeft: element(el.children()[3]),
+					arrowRight: element(el.children()[4])
         },
         domObserver,
         isXActive = false,
         isYActive = false,
+				isDisableY = !config.noDisableY,
         containerWidth = 0,
         containerHeight = 0,
         contentWidth = 0,
@@ -189,6 +195,7 @@ angular.module('ngScrollable', [])
             }
             dom.sliderX[0].style[xform] = 'translate3d(' + toPix(xSliderLeft) + ',0,0)';
             dom.sliderX[0].style.width = toPix(xSliderWidth);
+
           } else {
             xSliderWidth = xSliderLeft = 0;
             dom.sliderX[0].style[xform] = 'translate3d(0,0,0)';
@@ -233,6 +240,8 @@ angular.module('ngScrollable', [])
           }
           dom.barX.css(scrollbarXStyles);
           dom.sliderX[0].style.display = isXActive || showAlways ? 'inherit' : 'none';
+          dom.arrowLeft[0].style.display = isXActive || showAlways ? 'inherit' : 'none';
+          dom.arrowRight[0].style.display = isXActive || showAlways ? 'inherit' : 'none';
         },
         updateBarY = function () {
           var showAlways = config.scrollYAlways,
@@ -271,6 +280,7 @@ angular.module('ngScrollable', [])
           var oldTop = contentTop;
           var oldLeft = contentLeft;
 
+
           // clamp to 0 .. content{Height|Width} - container{Height|Width}
           contentTop = clamp(top, 0, contentHeight - containerHeight);
           contentLeft = clamp(left, 0, contentWidth - containerWidth);
@@ -280,12 +290,13 @@ angular.module('ngScrollable', [])
             return;
           }
 
+
           // update CSS
           dom.content[0].style[xform] = 'translate3d(' + toPix(-contentLeft) + ',' + toPix(-contentTop) + ',0)';
 
           // update spies async to avoid overwriting one spy while a $watch is pending
           $scope.$applyAsync(updateSpies);
-
+          updateFade();
           // fire scrollSpy events only when entering a margin
           if (contentTop < containerHeight * config.spyMargin && oldTop >= containerHeight * config.spyMargin) {
             signal('scrollable.spytop', contentTop, config.id);
@@ -301,10 +312,35 @@ angular.module('ngScrollable', [])
           }
 
         },
+        updateFade = function () {
+            if (config.fadeAction) {
+            		if (contentLeft === 0 && (contentLeft === (contentWidth - containerWidth)) ){
+									dom.el.addClass('scrollable--fadeRight');
+									dom.el.addClass('scrollable--fadeLeft');
+								} else if (contentLeft === 0) {
+                    dom.el.addClass('scrollable--fadeRight');
+                    dom.el.removeClass('scrollable--fadeLeft');
+                } else if ((contentLeft === (contentWidth - containerWidth)) ) {
+                    dom.el.addClass('scrollable--fadeLeft');
+                    dom.el.removeClass('scrollable--fadeRight');
+                } else {
+                    dom.el.removeClass('scrollable--fadeRight');
+                    dom.el.removeClass('scrollable--fadeLeft');
+                }
+            }
+        },
+
         scrollX = function (pos) {
           if (!isXActive) { return; }
           scrollTo(pos, contentTop);
           updateSliderX();
+
+        },
+        arrowLeftScrollX = function() {
+            scrollX(contentLeft-100);
+        },
+        arrowRightScrollX = function() {
+            scrollX(contentLeft+100);
         },
         scrollY = function (pos) {
           if (!isYActive) { return; }
@@ -352,6 +388,7 @@ angular.module('ngScrollable', [])
 
           // broadcast the new dimensions down the scope stack so inner content
           // controllers can react appropriately
+          updateFade();
           if (!noNotify) {
             $scope.$broadcast('scrollable.dimensions', containerWidth, containerHeight, contentWidth, contentHeight, config.id);
           }
@@ -429,10 +466,21 @@ angular.module('ngScrollable', [])
             // scale slider move to content width
             var deltaSlider = xpos(e) - dragStartPageX,
                 deltaContent = isTouchDevice ? -deltaSlider : parseInt(deltaSlider * (contentWidth - containerWidth) / (containerWidth - xSliderWidth), 10);
+
             $$rAF(bind(null, scrollX, dragStartLeft + deltaContent));
             return isTouchDevice || stop(e, true);
           }
         },
+				onMouseMoveXInversion = function (e) {
+					if (isXScrolling) {
+						// scale slider move to content width
+						var deltaSlider = xpos(e) - dragStartPageX,
+							deltaContent = isTouchDevice ? -deltaSlider : parseInt(deltaSlider * (contentWidth - containerWidth) / (containerWidth - xSliderWidth), 10);
+						deltaContent = -deltaContent;
+						$$rAF(bind(null, scrollX, dragStartLeft + deltaContent));
+						return isTouchDevice || stop(e, true);
+					}
+				},
         onMouseUpX = function (e) {
           if (isXScrolling) {
             $document.off('mousemove', onMouseMoveX);
@@ -458,6 +506,7 @@ angular.module('ngScrollable', [])
           if (isTouchDevice && preventTouch(e)) {
             return isTouchDevice;
           }
+
           dragStartPageX = xpos(e);
           dragStartLeft = contentLeft;
           isXScrolling = true;
@@ -471,6 +520,24 @@ angular.module('ngScrollable', [])
           dom.el.addClass('active');
           return isTouchDevice || stop(e, true);
         },
+				onMouseDownXInversion = function (e) {
+					if (isTouchDevice && preventTouch(e)) {
+						return isTouchDevice;
+					}
+
+					dragStartPageX = xpos(e);
+					dragStartLeft = contentLeft;
+					isXScrolling = true;
+					velocityX = amplitudeX = 0;
+					frameX = contentLeft;
+					$document.on('mousemove', onMouseMoveXInversion);
+					$document.on('mouseup',   onMouseUpX);
+					if (isTouchDevice && !trackerTimeout) {
+						trackerTimeout = $interval(track, 50);
+					}
+					dom.el.addClass('active');
+					return isTouchDevice || stop(e, true);
+				},
         onMouseMoveY =  function (e) {
           if (isYScrolling) {
             var deltaSlider = ypos(e) - dragStartPageY,
@@ -669,12 +736,13 @@ angular.module('ngScrollable', [])
             // only be used for vertical scrolling - this is the default
             $$rAF(bind(null, scrollY, contentTop + deltaY));
             $$rAF(bind(null, scrollX, contentLeft + deltaX));
+
             if (isYActive) {
               stopit = !verticalEdge(0);
             }
-            // if (isXActive) {
-            //   stopit = stopit && !deltaY && !horizontalEdge(0);
-            // }
+            if (isXActive && !isDisableY) {
+              stopit = stopit && !deltaY && !horizontalEdge(0);
+            }
           } else if (isYActive && !isXActive) {
             // only vertical scrollbar is active and useBothWheelAxes option is
             // active, so let's scroll vertical bar using both mouse wheel axes
@@ -769,8 +837,17 @@ angular.module('ngScrollable', [])
             // slider drag
             dom.sliderX.on('mousedown', onMouseDownX);
 
-            if (isTouchDevice) {
+            if (config.dragContentX) {
+							dom.content.on('click', stop);
+							dom.content.on('mousedown', onMouseDownXInversion);
+						}
 
+						if (config.arrowX) {
+							dom.arrowLeft.on('click', arrowLeftScrollX);
+							dom.arrowRight.on('click', arrowRightScrollX);
+						}
+
+            if (isTouchDevice) {
               // content touch/drag
               dom.el.on('touchstart', onMouseDownX);
               dom.el.on('touchmove',  onMouseMoveX);
@@ -827,6 +904,7 @@ angular.module('ngScrollable', [])
 
           // slider events
           dom.sliderX.off('click', stop);
+          dom.content.off('click', stop);
           dom.barX.off('click',    clickBarX);
           dom.sliderY.off('click', stop);
           dom.barY.off('click',    clickBarY);
@@ -843,6 +921,17 @@ angular.module('ngScrollable', [])
 
           // slider drag
           dom.sliderX.off('mousedown', onMouseDownX);
+
+
+					if (config.dragContentX) {
+						dom.content.off('mousedown', onMouseDownXInversion);
+					}
+
+					if (config.arrowX) {
+						dom.arrowLeft.off('click', scrollX(contentLeft-100));
+						dom.arrowRight.off('click', scrollX(contentLeft+100));
+					}
+
           $document.off('mousemove',   onMouseMoveX);
           $document.off('mouseup',     onMouseUpX);
 
@@ -948,9 +1037,19 @@ angular.module('ngScrollable', [])
           unregisterHandlers();
         });
 
-        // init
+
         registerHandlers();
         refresh();
+
+        // init
+        if (config.fadeAction) {
+            dom.el.addClass('scrollable--fade');
+            updateFade();
+        }
+
+        if (config.arrowX) {
+            dom.el.addClass('scrollable--arrowX');
+        }
 
         // watch and set spy attribute value expressions
         angular.forEach(['spyX', 'spyY'], function (attr) {
